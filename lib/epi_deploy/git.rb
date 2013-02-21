@@ -112,26 +112,27 @@ namespace :git do
     desc "When you're ready to deploy a release to demo from master run this task. The major version number will be bumped, the commit tagged and merged into demo (and pushed to origin). Optional deployment."
     task release: :environment do
       if branch_exists? 'demo'
-        return unless confirm?('This will merge the master branch to demo for a new release. Continue?')
-        
-        branch = current_branch_name
-        `git checkout master`
-        `git pull`
-        new_version = major_version_bump
-        write_app_version new_version
+        if confirm?('This will merge the master branch to demo for a new release. Continue? (y/n)')
+          branch = current_branch_name
+          `git checkout master`
+          `git pull`
+          new_version = major_version_bump
+          write_app_version new_version
 
-        `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
-        `git tag -a v#{new_version} -m "Version #{new_version}"`
+          `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
+          `git tag -a v#{new_version} -m "Version #{new_version}"`
+          `git push origin master`
 
-        `git checkout demo`
-        `git pull`
+          `git checkout demo`
+          `git pull`
 
-        `git merge --no-ff v#{new_version}`
-        `git push origin demo`
+          `git merge --no-ff v#{new_version}`
+          `git push origin demo`
 
-        deploy? 'demo'  
-        puts  "\x1B[32m OK \x1B[0m"
-        `git checkout #{branch}` unless branch == current_branch_name
+          deploy? 'demo'  
+          puts  "\x1B[32m OK \x1B[0m"
+          `git checkout #{branch}` unless branch == current_branch_name
+        end
       else
         error "The demo branch does not exist."
       end
