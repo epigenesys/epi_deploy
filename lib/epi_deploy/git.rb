@@ -77,7 +77,7 @@ namespace :git do
     !(`git diff-index HEAD`.blank?)
   end
   
-  desc "Sets up the standard demo, staging and production branches and the app version file"
+  desc "Run this task at the start to check your repository is set up correctly and create the necessary branches if they don't exist."
   task setup: :environment do
     print " - Checking git repo..."
     if Dir.exist?('.git')
@@ -109,7 +109,7 @@ namespace :git do
   end
   
   namespace :demo do
-    desc "Tag and release the current master branch to demo"
+    desc "When you're ready to deploy a release to demo from master run this task. The major version number will be bumped, the commit tagged and merged into demo (and pushed to origin). Optional deployment."
     task release: :environment do
       if branch_exists? 'demo'
         return unless confirm?('This will merge the master branch to demo for a new release. Continue?')
@@ -137,7 +137,7 @@ namespace :git do
       end
     end
 
-    desc "Update the demo site to reflect the latest changes"
+    desc "After any QA / feedback changes have been made for a release on the demo branch, run this to bump the version, optionally deploy, and optionally merge the changes back to master."
     task update: :environment do
       if branch_exists? 'demo'
         branch = current_branch_name
@@ -182,7 +182,7 @@ namespace :git do
   end
   
   namespace :production do
-    desc ""
+    desc "When you're ready to deploy to production run this task. You will be prompted to choose which version (tag) to merge into the production branch and optionally deploy."
     task release: :environment do
       if branch_exists? 'production'
         branch = current_branch_name
@@ -227,7 +227,7 @@ namespace :git do
   # production and causing troubles due to a severe bug, but changes on master are yet unstable. We may then make a hotfix 
   # branch from production and start fixing the problem.
   
-  desc "Create a hotfix branch from the specified live branch, bump the version and commit"
+  desc "This will create a hotfix branch from the live branch specified and bump the version ready for you to implement the fix."
   task :start_hotfix_for, [:live_branch] => :environment do |t, args|
     if uncommitted_changes?
       error("You have uncommitted changes to your branch - commit these and try again.")
@@ -256,7 +256,7 @@ namespace :git do
     end
   end
   
-  desc "Merges the hotfix into the appropriate live branch (determined from hotfix branch name), then back into master if required."
+  desc "This will merge your hotfix into the appropriate live branch and optionally deploy. You should then manually merge the hotfix into deploy and master if necessary and delete the hotfix branch. Note: you must be in the hotfix branch you wish to apply before running this task."
   task apply_hotfix: :environment do
     if current_branch?(:hotfix)
       version = read_app_version
@@ -266,27 +266,8 @@ namespace :git do
       merge_and_tag(hotfix_branch, live_branch, version)
       deploy?(live_branch)
       
-      if confirm?("Do you wish to merge this hotfix back into master? (y/n)")      
-        merge_branch = 'master'       
-        
-        `git checkout #{merge_branch}`
-        `git pull`
-        new_version = hotfix_version_bump
-        `git merge --no-commit #{hotfix_branch}`
-        
-        # Avoid annoying version file conflicts
-        write_app_version(new_version)
-        `git add #{version_file_path}` 
-        
-        conflicted_files = `git diff --name-only --diff-filter=U`
-        if conflicted_files.empty?
-          `git commit -am "Merged in #{hotfix_branch}"`
-          `git push origin #{merge_branch}`
-        else
-          error("You have conflicts, you should fix these manually.")
-        end
-      end
-      
+      puts "The hotfix has been applied to #{live_branch}."
+      puts "IMPORTANT: You should merge the hotfix branch into demo and master if necessary, then delete the hotfix branch."
     else
       error("Please checkout the hotfix branch you wish to apply.")
     end
