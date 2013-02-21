@@ -152,8 +152,29 @@ namespace :git do
         `git push origin demo`
 
         deploy? 'demo'
-        puts  "\x1B[32m OK \x1B[0m"
-        `git checkout #{branch}` unless branch == current_branch_name
+        
+        if confirm?("Do you wish to merge this back into master? (y/n)")      
+          merge_branch = 'master'       
+
+          `git checkout #{merge_branch}`
+          `git pull`
+          new_version = minor_version_bump
+          `git merge --no-commit demo`
+
+          # Avoid annoying version file conflicts
+          write_app_version(new_version)
+          `git add #{version_file_path}` 
+
+          conflicted_files = `git diff --name-only --diff-filter=U`
+          if conflicted_files.empty?
+            `git commit -am "Merged in demo"`
+            `git push origin #{merge_branch}`
+          else
+            error("You have conflicts, you should fix these manually.")
+          end
+        else
+          `git checkout #{branch}` unless branch == current_branch_name
+        end
       else
         error "The demo branch does not exist."
       end
@@ -264,10 +285,6 @@ namespace :git do
         else
           error("You have conflicts, you should fix these manually.")
         end
-      end
-      
-      if confirm?("Do you need to merge the hotfix into any of the other live branches?")
-        # stuff
       end
       
     else
