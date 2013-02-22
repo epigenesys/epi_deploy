@@ -97,7 +97,8 @@ namespace :git do
         if existing_branches.member?(required_branch)
           puts "\x1B[32m OK \x1B[0m"
         else
-          `git branch -u origin/#{required_branch}`
+          `git branch #{required_branch}`
+          `git branch --set-upstream-to=origin/#{required_branch} #{required_branch}`
           puts "\x1B[32m created \x1B[0m"
         end
       end
