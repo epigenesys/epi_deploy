@@ -44,7 +44,7 @@ namespace :git do
   end
   
   def uncommited_changes?
-    !`git diff --quiet && git diff --cached --quiet`.blank?
+    !`git diff && git diff --cached`.blank?
   end
   
   def branch_exists?(live_branch)
