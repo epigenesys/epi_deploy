@@ -42,6 +42,11 @@ namespace :git do
   def all_branches
     `git branch -a`
   end
+  
+  def uncommited_changes?
+    !`git diff --quiet && git diff --cached --quiet`.blank?
+  end
+  
   def branch_exists?(live_branch)
      all_branches =~ /[\s\/]#{live_branch}$/
   end
@@ -92,7 +97,7 @@ namespace :git do
         if existing_branches.member?(required_branch)
           puts "\x1B[32m OK \x1B[0m"
         else
-          `git branch #{required_branch}`
+          `git branch -u origin/#{required_branch}`
           puts "\x1B[32m created \x1B[0m"
         end
       end
@@ -112,26 +117,30 @@ namespace :git do
     desc "When you're ready to deploy a release to demo from master run this task. The major version number will be bumped, the commit tagged and merged into demo (and pushed to origin). Optional deployment."
     task release: :environment do
       if branch_exists? 'demo'
-        if confirm?('This will merge the master branch to demo for a new release. Continue? (y/n)')
-          branch = current_branch_name
-          `git checkout master`
-          `git pull`
-          new_version = major_version_bump
-          write_app_version new_version
+        if uncommited_changes?
+          error "There are uncommited changes on your current branch. Please commit these changes before continuing."
+        else
+          if confirm?('This will merge the master branch to demo for a new release. Continue? (y/n)')
+            branch = current_branch_name
+            `git checkout master`
+            `git pull`
+            new_version = major_version_bump
+            write_app_version new_version
 
-          `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
-          `git tag -a v#{new_version} -m "Version #{new_version}"`
-          `git push origin master`
+            `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
+            `git tag -a v#{new_version} -m "Version #{new_version}"`
+            `git push origin master`
 
-          `git checkout demo`
-          `git pull`
+            `git checkout demo`
+            `git pull`
 
-          `git merge --no-ff v#{new_version}`
-          `git push origin demo`
+            `git merge --no-ff v#{new_version}`
+            `git push origin demo`
 
-          deploy? 'demo'  
-          puts  "\x1B[32m OK \x1B[0m"
-          `git checkout #{branch}` unless branch == current_branch_name
+            deploy? 'demo'  
+            puts  "\x1B[32m OK \x1B[0m"
+            `git checkout #{branch}` unless branch == current_branch_name
+          end
         end
       else
         error "The demo branch does not exist."
@@ -141,40 +150,44 @@ namespace :git do
     desc "After any QA / feedback changes have been made for a release on the demo branch, run this to bump the version, optionally deploy, and optionally merge the changes back to master."
     task update: :environment do
       if branch_exists? 'demo'
-        branch = current_branch_name
-        `git checkout demo`
-        `git pull`
-
-        new_version = minor_version_bump
-        write_app_version new_version
-
-        `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
-        `git tag -a v#{new_version} -m "Version #{new_version}"`
-        `git push origin demo`
-
-        deploy? 'demo'
-        
-        if confirm?("Do you wish to merge this back into master? (y/n)")      
-          merge_branch = 'master'       
-
-          `git checkout #{merge_branch}`
-          `git pull`
-          new_version = minor_version_bump
-          `git merge --no-commit demo`
-
-          # Avoid annoying version file conflicts
-          write_app_version(new_version)
-          `git add #{version_file_path}` 
-
-          conflicted_files = `git diff --name-only --diff-filter=U`
-          if conflicted_files.empty?
-            `git commit -am "Merged in demo"`
-            `git push origin #{merge_branch}`
-          else
-            error("You have conflicts, you should fix these manually.")
-          end
+        if uncommited_changes?
+          error "There are uncommited changes on your current branch. Please commit these changes before continuing."
         else
-          `git checkout #{branch}` unless branch == current_branch_name
+          branch = current_branch_name
+          `git checkout demo`
+          `git pull`
+
+          new_version = minor_version_bump
+          write_app_version new_version
+
+          `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
+          `git tag -a v#{new_version} -m "Version #{new_version}"`
+          `git push origin demo`
+
+          deploy? 'demo'
+
+          if confirm?("Do you wish to merge this back into master? (y/n)")      
+            merge_branch = 'master'       
+
+            `git checkout #{merge_branch}`
+            `git pull`
+            new_version = minor_version_bump
+            `git merge --no-commit demo`
+
+            # Avoid annoying version file conflicts
+            write_app_version(new_version)
+            `git add #{version_file_path}` 
+
+            conflicted_files = `git diff --name-only --diff-filter=U`
+            if conflicted_files.empty?
+              `git commit -am "Merged in demo"`
+              `git push origin #{merge_branch}`
+            else
+              error("You have conflicts, you should fix these manually.")
+            end
+          else
+            `git checkout #{branch}` unless branch == current_branch_name
+          end
         end
       else
         error "The demo branch does not exist."
@@ -186,35 +199,39 @@ namespace :git do
     desc "When you're ready to deploy to production run this task. You will be prompted to choose which version (tag) to merge into the production branch and optionally deploy."
     task release: :environment do
       if branch_exists? 'production'
-        branch = current_branch_name
-      
-        tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
-        puts "\x1B[36m\033[1mWhich tag do you want to deploy to production?\x1B[0m"
-        puts tags.map.with_index {|ver, i| "  #{i+1} - #{ver}" }.join("\n")
-      
-        print "(press enter for the first tag in the list)"
-        selected = (STDIN.gets[/\d+/] rescue nil) || 1
-      
-      
-        if (selected_tag = tags[selected.to_i - 1]).nil?
-          error 'Invalid option.'
+        if uncommited_changes?
+          error "There are uncommited changes on your current branch. Please commit these changes before continuing."
         else
-        
-          `git checkout production`
-          `git pull`
-        
-          `git merge --no-ff #{selected_tag}`
-          `git push origin production`
-        
-          deploy? 'production'
-        
-          puts "\x1B[32m OK \x1B[0m"
-        
-          `git checkout #{branch}` unless branch == current_branch_name
+            branch = current_branch_name
+
+            tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
+            puts "\x1B[36m\033[1mWhich tag do you want to deploy to production?\x1B[0m"
+            puts tags.map.with_index {|ver, i| "  #{i+1} - #{ver}" }.join("\n")
+
+            print "(press enter for the first tag in the list)"
+            selected = (STDIN.gets[/\d+/] rescue nil) || 1
+
+
+            if (selected_tag = tags[selected.to_i - 1]).nil?
+              error 'Invalid option.'
+            else
+
+              `git checkout production`
+              `git pull`
+
+              `git merge --no-ff #{selected_tag}`
+              `git push origin production`
+
+              deploy? 'production'
+
+              puts "\x1B[32m OK \x1B[0m"
+
+              `git checkout #{branch}` unless branch == current_branch_name
+            end
+          else
+            error "The production branch does not exist."
+          end
         end
-      else
-        error "The production branch does not exist."
-      end
     end
   end
 
@@ -231,7 +248,7 @@ namespace :git do
   desc "This will create a hotfix branch from the live branch specified and bump the version ready for you to implement the fix."
   task :start_hotfix_for, [:live_branch] => :environment do |t, args|
     if uncommitted_changes?
-      error("You have uncommitted changes to your branch - commit these and try again.")
+      eerror "There are uncommited changes on your current branch. Please commit these changes before continuing."
     else
       live_branch = args[:live_branch]
       if branch_exists?(live_branch)
@@ -259,18 +276,22 @@ namespace :git do
   
   desc "This will merge your hotfix into the appropriate live branch and optionally deploy. You should then manually merge the hotfix into deploy and master if necessary and delete the hotfix branch. Note: you must be in the hotfix branch you wish to apply before running this task."
   task apply_hotfix: :environment do
-    if current_branch?(:hotfix)
-      version = read_app_version
-      hotfix_branch = current_branch_name
-      live_branch = hotfix_branch.match(/^hotfix-(?<live_branch>.*)-[^-]+$/)[:live_branch]
-  
-      merge_and_tag(hotfix_branch, live_branch, version)
-      deploy?(live_branch)
-      
-      puts "The hotfix has been applied to #{live_branch}."
-      puts "IMPORTANT: You should merge the hotfix branch into demo and master if necessary, then delete the hotfix branch."
+    if uncommitted_changes?
+      eerror "There are uncommited changes on your current branch. Please commit these changes before continuing."
     else
-      error("Please checkout the hotfix branch you wish to apply.")
+      if current_branch?(:hotfix)
+        version = read_app_version
+        hotfix_branch = current_branch_name
+        live_branch = hotfix_branch.match(/^hotfix-(?<live_branch>.*)-[^-]+$/)[:live_branch]
+
+        merge_and_tag(hotfix_branch, live_branch, version)
+        deploy?(live_branch)
+
+        puts "The hotfix has been applied to #{live_branch}."
+        puts "IMPORTANT: You should merge the hotfix branch into demo and master if necessary, then delete the hotfix branch."
+      else
+        error("Please checkout the hotfix branch you wish to apply.")
+      end
     end
   end
   
