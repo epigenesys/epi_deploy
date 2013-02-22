@@ -202,36 +202,35 @@ namespace :git do
         if uncommited_changes?
           error "There are uncommited changes on your current branch. Please commit these changes before continuing."
         else
-            branch = current_branch_name
+          branch = current_branch_name
 
-            tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
-            puts "\x1B[36m\033[1mWhich tag do you want to deploy to production?\x1B[0m"
-            puts tags.map.with_index {|ver, i| "  #{i+1} - #{ver}" }.join("\n")
+          tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
+          puts "\x1B[36m\033[1mWhich tag do you want to deploy to production?\x1B[0m"
+          puts tags.map.with_index {|ver, i| "  #{i+1} - #{ver}" }.join("\n")
 
-            print "(press enter for the first tag in the list)"
-            selected = (STDIN.gets[/\d+/] rescue nil) || 1
+          print "(press enter for the first tag in the list)"
+          selected = (STDIN.gets[/\d+/] rescue nil) || 1
 
 
-            if (selected_tag = tags[selected.to_i - 1]).nil?
-              error 'Invalid option.'
-            else
-
-              `git checkout production`
-              `git pull`
-
-              `git merge --no-ff #{selected_tag}`
-              `git push origin production`
-
-              deploy? 'production'
-
-              puts "\x1B[32m OK \x1B[0m"
-
-              `git checkout #{branch}` unless branch == current_branch_name
-            end
+          if (selected_tag = tags[selected.to_i - 1]).nil?
+            error 'Invalid option.'
           else
-            error "The production branch does not exist."
+
+            `git checkout production`
+            `git pull`
+
+            `git merge --no-ff #{selected_tag}`
+            `git push origin production`
+
+            deploy? 'production'
+
+            puts "\x1B[32m OK \x1B[0m"
+
+            `git checkout #{branch}` unless branch == current_branch_name
           end
         end
+      else
+        error "The production branch does not exist."
     end
   end
 
