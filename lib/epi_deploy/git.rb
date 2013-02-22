@@ -231,6 +231,7 @@ namespace :git do
         end
       else
         error "The production branch does not exist."
+      end
     end
   end
 
@@ -247,7 +248,7 @@ namespace :git do
   desc "This will create a hotfix branch from the live branch specified and bump the version ready for you to implement the fix."
   task :start_hotfix_for, [:live_branch] => :environment do |t, args|
     if uncommitted_changes?
-      eerror "There are uncommited changes on your current branch. Please commit these changes before continuing."
+      error "There are uncommited changes on your current branch. Please commit these changes before continuing."
     else
       live_branch = args[:live_branch]
       if branch_exists?(live_branch)
@@ -276,7 +277,7 @@ namespace :git do
   desc "This will merge your hotfix into the appropriate live branch and optionally deploy. You should then manually merge the hotfix into deploy and master if necessary and delete the hotfix branch. Note: you must be in the hotfix branch you wish to apply before running this task."
   task apply_hotfix: :environment do
     if uncommitted_changes?
-      eerror "There are uncommited changes on your current branch. Please commit these changes before continuing."
+      error "There are uncommited changes on your current branch. Please commit these changes before continuing."
     else
       if current_branch?(:hotfix)
         version = read_app_version
