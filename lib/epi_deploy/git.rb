@@ -1,7 +1,7 @@
+# TODO: check for uncommitted changes at the start of each task
 # TODO: Should crap out if git error?
 # TODO: Be able to config live branches in app?
 
-## A wrapper for epiGenesys' implementation of Vincent Driessen's git branching model (aka gitflow)
 namespace :git do
 
   def version_file_path
@@ -70,7 +70,7 @@ namespace :git do
     `git pull`
     `git merge #{source}`
     `git tag -a v#{version} -m "Version #{version}"`
-    `git push origin target`
+    `git push origin #{target}`
     puts  "\x1B[32m OK \x1B[0m"
   end
   def uncommitted_changes?
@@ -82,7 +82,7 @@ namespace :git do
     print " - Checking git repo..."
     if Dir.exist?('.git')
       puts  "\x1B[32m OK \x1B[0m"
-      
+      branch = current_branch_name
       puts " - Checking branch structure..."
       required_branches = %w(master demo production)
       existing_branches = all_branches.scan(/#{required_branches.join('|')}/).to_set
@@ -92,11 +92,12 @@ namespace :git do
         if existing_branches.member?(required_branch)
           puts "\x1B[32m OK \x1B[0m"
         else
-          `git branch #{required_branch}`
+          `git checkout -b #{required_branch}`
+          `git push -u origin #{required_branch}`
           puts "\x1B[32m created \x1B[0m"
-        end
+        end  
       end
-      
+      `git checkout #{branch}` unless branch == current_branch_name
       print  " - Checking version file..."
       unless File.exist?(version_file_path)
         print "creating #{version_file_path}..."
