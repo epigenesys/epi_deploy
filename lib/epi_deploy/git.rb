@@ -135,7 +135,7 @@ namespace :git do
             `git checkout demo`
             `git pull`
 
-            `git merge --no-ff v#{new_version}`
+            `git merge --no-edit --no-ff v#{new_version}`
             `git push origin demo`
 
             deploy? 'demo'  
@@ -220,7 +220,7 @@ namespace :git do
             `git checkout production`
             `git pull`
 
-            `git merge --no-ff #{selected_tag}`
+            `git merge --no-edit --no-ff #{selected_tag}`
             `git push origin production`
 
             deploy? 'production'
