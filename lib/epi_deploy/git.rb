@@ -125,7 +125,7 @@ namespace :git do
             branch = current_branch_name
             `git checkout master`
             `git pull`
-            new_version = major_version_bump
+            new_version = minor_version_bump
             write_app_version new_version
 
             `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
