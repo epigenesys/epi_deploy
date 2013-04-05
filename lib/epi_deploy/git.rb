@@ -115,7 +115,7 @@ namespace :git do
   end
   
   namespace :demo do
-    desc "When you're ready to deploy a release to demo from master run this task. The major version number will be bumped, the commit tagged and merged into demo (and pushed to origin). Optional deployment."
+    desc "When you're ready to deploy a release to demo from master run this task. The minor version number will be bumped, the commit tagged and merged into demo (and pushed to origin). Optional deployment."
     task release: :environment do
       if branch_exists? 'demo'
         if uncommited_changes?
@@ -292,6 +292,44 @@ namespace :git do
         puts "IMPORTANT: You should merge the hotfix branch into demo and master if necessary, then delete the hotfix branch."
       else
         error("Please checkout the hotfix branch you wish to apply.")
+      end
+    end
+  end
+  
+  
+  
+  # Staging instead of demo (for MSCAA) - to be standardised at some point
+  namespace :staging do
+    desc "When you're ready to deploy a release to staging from master run this task. The minor version number will be bumped, the commit tagged and merged into staging (and pushed to origin). Optional deployment."
+    task release: :environment do
+      if branch_exists? 'staging'
+        if uncommited_changes?
+          error "There are uncommited changes on your current branch. Please commit these changes before continuing."
+        else
+          if confirm?('This will merge the master branch to staging for a new release. Continue? (y/n)')
+            branch = current_branch_name
+            `git checkout master`
+            `git pull`
+            new_version = minor_version_bump
+            write_app_version new_version
+
+            `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
+            `git tag -a v#{new_version} -m "Version #{new_version}"`
+            `git push origin master`
+
+            `git checkout staging`
+            `git pull`
+
+            `git merge --no-edit --no-ff v#{new_version}`
+            `git push origin staging`
+
+            deploy? 'staging'  
+            puts  "\x1B[32m OK \x1B[0m"
+            `git checkout #{branch}` unless branch == current_branch_name
+          end
+        end
+      else
+        error "The staging branch does not exist."
       end
     end
   end
