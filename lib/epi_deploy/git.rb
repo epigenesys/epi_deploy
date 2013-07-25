@@ -130,7 +130,7 @@ namespace :git do
 
             `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
             `git tag -a v#{new_version} -m "Version #{new_version}"`
-            `git push origin master`
+            `git push origin master --tags`
 
             `git checkout demo`
             `git pull`
