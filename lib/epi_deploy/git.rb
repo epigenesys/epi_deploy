@@ -196,43 +196,54 @@ namespace :git do
     end
   end
   
+
+  def production_style_workflow_for(env_name)
+    if branch_exists? env_name
+      if uncommited_changes?
+        error "There are uncommited changes on your current branch. Please commit these changes before continuing."
+      else
+        branch = current_branch_name
+
+        tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
+        puts "\x1B[36m\033[1mWhich tag do you want to deploy to #{env_name}?\x1B[0m"
+        puts tags.map.with_index {|ver, i| "  #{i+1} - #{ver}" }.join("\n")
+
+        print "(press enter for the first tag in the list)"
+        selected = (STDIN.gets[/\d+/] rescue nil) || 1
+
+
+        if (selected_tag = tags[selected.to_i - 1]).nil?
+          error 'Invalid option.'
+        else
+          `git checkout #{env_name}`
+          `git pull`
+
+          `git merge --no-edit --no-ff #{selected_tag}`
+          `git push origin #{env_name}`
+
+          deploy? env_name
+
+          puts "\x1B[32m OK \x1B[0m"
+
+          `git checkout #{branch}` unless branch == current_branch_name
+        end
+      end
+    else
+      error "The #{env_name} branch does not exist."
+    end
+  end
+  
   namespace :production do
     desc "When you're ready to deploy to production run this task. You will be prompted to choose which version (tag) to merge into the production branch and optionally deploy."
     task release: :environment do
-      if branch_exists? 'production'
-        if uncommited_changes?
-          error "There are uncommited changes on your current branch. Please commit these changes before continuing."
-        else
-          branch = current_branch_name
-
-          tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
-          puts "\x1B[36m\033[1mWhich tag do you want to deploy to production?\x1B[0m"
-          puts tags.map.with_index {|ver, i| "  #{i+1} - #{ver}" }.join("\n")
-
-          print "(press enter for the first tag in the list)"
-          selected = (STDIN.gets[/\d+/] rescue nil) || 1
-
-
-          if (selected_tag = tags[selected.to_i - 1]).nil?
-            error 'Invalid option.'
-          else
-
-            `git checkout production`
-            `git pull`
-
-            `git merge --no-edit --no-ff #{selected_tag}`
-            `git push origin production`
-
-            deploy? 'production'
-
-            puts "\x1B[32m OK \x1B[0m"
-
-            `git checkout #{branch}` unless branch == current_branch_name
-          end
-        end
-      else
-        error "The production branch does not exist."
-      end
+      production_style_workflow_for('production')
+    end
+  end
+  
+  namespace :training do
+    desc "When you're ready to deploy to training run this task. You will be prompted to choose which version (tag) to merge into the training branch and optionally deploy."
+    task release: :environment do
+      production_style_workflow_for('training')
     end
   end
 
