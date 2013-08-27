@@ -205,28 +205,40 @@ namespace :git do
         branch = current_branch_name
 
         tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
-        puts "\x1B[36m\033[1mWhich tag do you want to deploy to #{env_name}?\x1B[0m"
-        puts tags.map.with_index {|ver, i| "  #{i+1} - #{ver}" }.join("\n")
 
-        print "(press enter for the first tag in the list)"
-        selected = (STDIN.gets[/\d+/] rescue nil) || 1
+        first_tag = tags.first
+        recent_tags = tags[1..5]
 
+        puts "The most recent tag is: #{first_tag}"
+        puts "Other recent tags are:"
+        puts recent_tags.map.with_index {|ver, i| "- #{ver}" }.join("\n")
 
-        if (selected_tag = tags[selected.to_i - 1]).nil?
-          error 'Invalid option.'
-        else
-          `git checkout #{env_name}`
-          `git pull`
+        selected = nil
 
-          `git merge --no-edit --no-ff #{selected_tag}`
-          `git push origin #{env_name}`
+        while selected.nil? do
+          puts
+          puts "\x1B[36m\033[1mWhich tag do you want to deploy to #{env_name}?\x1B[0m (default: #{first_tag})"
+          puts
+          input = (STDIN.gets[/v[\.\d]+/] rescue nil) || first_tag
 
-          deploy? env_name
-
-          puts "\x1B[32m OK \x1B[0m"
-
-          `git checkout #{branch}` unless branch == current_branch_name
+          selected = tags.include?(input) ? input : nil
+          puts "Invalid tag selected" unless selected
         end
+
+        puts
+        puts "\x1B[36m\033[1mDeploying tag #{selected} to #{env_name}...\x1B[0m"
+
+        `git checkout #{env_name}`
+        `git pull`
+
+        `git merge --no-edit --no-ff #{selected_tag}`
+        `git push origin #{env_name}`
+
+        deploy? env_name
+
+        puts "\x1B[32m OK \x1B[0m"
+
+        `git checkout #{branch}` unless branch == current_branch_name
       end
     else
       error "The #{env_name} branch does not exist."
