@@ -231,7 +231,7 @@ namespace :git do
         `git checkout #{env_name}`
         `git pull`
 
-        `git merge --no-edit --no-ff #{selected_tag}`
+        `git merge --no-edit --no-ff #{selected}`
         `git push origin #{env_name}`
 
         deploy? env_name
