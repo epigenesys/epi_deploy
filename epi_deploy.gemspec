@@ -18,5 +18,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   
   gem.add_dependency('rake')
-  gem.add_dependency('railties', '~> 3.2')  
+  gem.add_dependency('railties', '~> 3.2', '~> 4')  
 end
