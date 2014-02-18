@@ -50,25 +50,31 @@ namespace :git do
   def branch_exists?(live_branch)
      all_branches =~ /[\s\/]#{live_branch}$/
   end
+
   def current_branch_name
     `git rev-parse --abbrev-ref HEAD`
   end
+
   def current_branch?(branch)
     current_branch_name =~ /^#{branch}-/
   end
+
   def confirm?(question)
     print "\x1B[36m\033[1m#{question}\x1B[0m"
     proceed = STDIN.gets[0..0] rescue nil
     (proceed == 'y' || proceed == 'Y')
   end
+
   def error(message)
     puts "\x1B[31mError: #{message}\x1B[0m" 
   end
+
   def deploy?(server)
     if confirm?("Would you like to deploy to the #{server} server? (y/n)")
       `cap #{server} deploy:migrations`
     end
   end
+
   def merge_and_tag(source, target, version)
     print "Merging and tagging #{source} to #{target}... "
     `git checkout #{target}`
@@ -78,8 +84,13 @@ namespace :git do
     `git push origin #{target}`
     puts  "\x1B[32m OK \x1B[0m"
   end
+
   def uncommitted_changes?
     !(`git diff-index HEAD`.blank?)
+  end
+
+  def can_create_tag?(branch)
+    branch != 'production' &&  branch != 'training' 
   end
   
   desc "Run this task at the start to check your repository is set up correctly and create the necessary branches if they don't exist."
@@ -89,7 +100,7 @@ namespace :git do
       puts  "\x1B[32m OK \x1B[0m"
       branch = current_branch_name
       puts " - Checking branch structure..."
-      required_branches = %w(master demo production)
+      required_branches = %w(master demo production qa)
       existing_branches = all_branches.scan(/#{required_branches.join('|')}/).to_set
       
       required_branches.each do |required_branch|
@@ -114,119 +125,44 @@ namespace :git do
     end
   end
   
-  namespace :demo do
-    desc "When you're ready to deploy a release to demo from master run this task. The minor version number will be bumped, the commit tagged and merged into demo (and pushed to origin). Optional deployment."
-    task release: :environment do
-      if branch_exists? 'demo'
-        if uncommited_changes?
-          error "There are uncommited changes on your current branch. Please commit these changes before continuing."
-        else
-          if confirm?('This will merge the master branch to demo for a new release. Continue? (y/n)')
-            branch = current_branch_name
-            `git checkout master`
-            `git pull`
-            new_version = minor_version_bump
-            write_app_version new_version
-
-            `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
-            `git tag -a v#{new_version} -m "Version #{new_version}"`
-            `git push origin master --tags`
-
-            `git checkout demo`
-            `git pull`
-
-            `git merge --no-edit --no-ff v#{new_version}`
-            `git push origin demo`
-
-            deploy? 'demo'  
-            puts  "\x1B[32m OK \x1B[0m"
-            `git checkout #{branch}` unless branch == current_branch_name
-          end
-        end
-      else
-        error "The demo branch does not exist."
-      end
-    end
-
-    desc "After any QA / feedback changes have been made for a release on the demo branch, run this to bump the version, optionally deploy, and optionally merge the changes back to master."
-    task update: :environment do
-      if branch_exists? 'demo'
-        if uncommited_changes?
-          error "There are uncommited changes on your current branch. Please commit these changes before continuing."
-        else
-          branch = current_branch_name
-          `git checkout demo`
-          `git pull`
-
-          new_version = minor_version_bump
-          write_app_version new_version
-
-          `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
-          `git tag -a v#{new_version} -m "Version #{new_version}"`
-          `git push origin demo`
-
-          deploy? 'demo'
-
-          if confirm?("Do you wish to merge this back into master? (y/n)")      
-            merge_branch = 'master'       
-
-            `git checkout #{merge_branch}`
-            `git pull`
-            new_version = minor_version_bump
-            `git merge --no-commit demo`
-
-            # Avoid annoying version file conflicts
-            write_app_version(new_version)
-            `git add #{version_file_path}` 
-
-            conflicted_files = `git diff --name-only --diff-filter=U`
-            if conflicted_files.empty?
-              `git commit -am "Merged in demo"`
-              `git push origin #{merge_branch}`
-            else
-              error("You have conflicts, you should fix these manually.")
-            end
-          else
-            `git checkout #{branch}` unless branch == current_branch_name
-          end
-        end
-      else
-        error "The demo branch does not exist."
-      end
-    end
-  end
-  
-
-  def production_style_workflow_for(env_name)
+  def workflow_for(env_name)
     if branch_exists? env_name
       if uncommited_changes?
         error "There are uncommited changes on your current branch. Please commit these changes before continuing."
       else
         branch = current_branch_name
+        if can_create_tag?(env_name) && confirm?("Do you want to create a new tag? If not you can choose an existing one? (y/n)")
+          new_version = minor_version_bump
+          write_app_version new_version
+          selected = new_version
+          `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
+          `git tag -a v#{new_version} -m "Version #{new_version}"`
+          `git push origin master --tags`
+        else
+          tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
 
-        tags = `git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
+          first_tag = tags.first
+          recent_tags = tags[1..5]
 
-        first_tag = tags.first
-        recent_tags = tags[1..5]
+          puts "The most recent tag is: #{first_tag}"
+          puts "Other recent tags are:"
+          puts recent_tags.map.with_index {|ver, i| "- #{ver}" }.join("\n")
 
-        puts "The most recent tag is: #{first_tag}"
-        puts "Other recent tags are:"
-        puts recent_tags.map.with_index {|ver, i| "- #{ver}" }.join("\n")
+          selected = nil
 
-        selected = nil
+          while selected.nil? do
+            puts
+            puts "\x1B[36m\033[1mWhich tag do you want to deploy to #{env_name}?\x1B[0m (default: #{first_tag})"
+            puts
+            input = (STDIN.gets[/v[\.\d]+/] rescue nil) || first_tag
 
-        while selected.nil? do
+            selected = tags.include?(input) ? input : nil
+            puts "Invalid tag selected" unless selected
+          end
+
           puts
-          puts "\x1B[36m\033[1mWhich tag do you want to deploy to #{env_name}?\x1B[0m (default: #{first_tag})"
-          puts
-          input = (STDIN.gets[/v[\.\d]+/] rescue nil) || first_tag
-
-          selected = tags.include?(input) ? input : nil
-          puts "Invalid tag selected" unless selected
+          puts "\x1B[36m\033[1mDeploying tag #{selected} to #{env_name}...\x1B[0m"
         end
-
-        puts
-        puts "\x1B[36m\033[1mDeploying tag #{selected} to #{env_name}...\x1B[0m"
 
         `git checkout #{env_name}`
         `git pull`
@@ -248,14 +184,28 @@ namespace :git do
   namespace :production do
     desc "When you're ready to deploy to production run this task. You will be prompted to choose which version (tag) to merge into the production branch and optionally deploy."
     task release: :environment do
-      production_style_workflow_for('production')
+      workflow_for('production')
     end
   end
   
   namespace :training do
     desc "When you're ready to deploy to training run this task. You will be prompted to choose which version (tag) to merge into the training branch and optionally deploy."
     task release: :environment do
-      production_style_workflow_for('training')
+      workflow_for('training')
+    end
+  end
+
+  namespace :qa do
+    desc "When you're ready to deploy to qa run this task. You will be prompted to choose which version (tag) to merge into the qa branch and optionally deploy."
+    task release: :environment do
+      workflow_for('qa')
+    end
+  end
+
+  namespace :demo do
+    desc "When you're ready to deploy to demo run this task. You will be prompted to choose which version (tag) to merge into the demo branch and optionally deploy."
+    task release: :environment do
+      workflow_for('demo')
     end
   end
 

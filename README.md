@@ -18,11 +18,8 @@ And then execute:
 ####rake git:setup
 Run this task at the start to check your repository is set up correctly and create the necessary branches if they don’t exist.
 
-####rake git:demo:release
-When you’re ready to deploy a release to demo from master run this task. The major version number will be bumped, the commit tagged and merged into demo (and pushed to origin). Optional deployment.
-
-####rake git:demo:update
-After any QA / feedback changes have been made for a release on the demo branch, run this to bump the version, optionally deploy, and optionally merge the changes back to master.
+####rake git:demo:release || rake git:qa:release
+When you’re ready to deploy a release to environment from master run this task. You will be asked if you want to create a new tag or use an existing one. The major version number will be bumped, the commit tagged and merged into the branch (and pushed to origin). Optional deployment.
 
 ####rake git:production:release
 When you’re ready to deploy to production run this task. You will be prompted to choose which version (tag) to merge into the production branch and optionally deploy.
