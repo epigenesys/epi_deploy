@@ -134,7 +134,7 @@ namespace :git do
         if can_create_tag?(env_name) && confirm?("Do you want to create a new tag? If not you can choose an existing one? (y/n)")
           new_version = minor_version_bump
           write_app_version new_version
-          selected = new_version
+          selected = "v#{new_version}"
           `git commit #{version_file_path} -m "Bumped to version #{new_version}"`
           `git tag -a v#{new_version} -m "Version #{new_version}"`
           `git push origin master --tags`
