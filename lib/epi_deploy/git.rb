@@ -124,6 +124,24 @@ namespace :git do
       error("Please init a repo with a master branch and push it to the server first.")
     end
   end
+
+  ##
+  # This method is intended to handle the alternate workflow for ticket-based projects.
+  # This allows a project to deploy a specific branch to a specific demo site.
+  # Both arguments must be given for this to work correctly.
+  def demo_workflow(args)
+    error "Both the demo and the branch values must be given." unless args.demo && args.branch
+
+    if branch_exists? args.branch
+      if uncommitted_changes?
+        error "There are uncommitted changes on your current branch. Please commit these changes before continuing."
+      else
+        
+      end
+    else
+      error "The #{args.branch} branch does not exist."
+    end
+  end
   
   def workflow_for(env_name)
     if branch_exists? env_name
@@ -204,8 +222,12 @@ namespace :git do
 
   namespace :demo do
     desc "When you're ready to deploy to demo run this task. You will be prompted to choose which version (tag) to merge into the demo branch and optionally deploy."
-    task release: :environment do
-      workflow_for('demo')
+    task :release, [:demo, :branch] => [:environment] do |t, args|
+      if args.blank?
+        workflow_for('demo')
+      else
+        demo_workflow(args)
+      end
     end
   end
 
