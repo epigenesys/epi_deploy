@@ -134,12 +134,13 @@ namespace :git do
     demo_site = "demo#{args.demo}"
 
     unless branch_exists? demo_site
-      if confirm?("The branch #{demo_site} does not exist. Do you want to create it now?")
+      if confirm?("The branch #{demo_site} does not exist. Do you want to create it now? (y/n)")
         `git checkout -b #{demo_site}`
         `git push -u origin #{demo_site}`
         puts "\x1B[32m created \x1B[0m"
       else
         error "The branch #{demo_site} does not exist and was not created."
+        return
       end
     end
     if uncommitted_changes?
