@@ -132,14 +132,23 @@ namespace :git do
   def demo_workflow(args)
     error "Both the demo and the branch values must be given." unless args.demo && args.branch
 
-    if branch_exists? args.branch
-      if uncommitted_changes?
-        error "There are uncommitted changes on your current branch. Please commit these changes before continuing."
+    unless branch_exists? args.branch
+      if confirm?("The branch #{args.branch} does not exist. Do you want to create it now?")
+        `git checkout -b demo#{args.demo}`
+        `git push -u origin demo#{args.demo}`
+        puts "\x1B[32m created \x1B[0m"
       else
-        
+        error "The branch #{args.branch} does not exist and was not created."
       end
+    end
+    if uncommitted_changes?
+      error "There are uncommitted changes on your current branch. Please commit these changes before continuing."
     else
-      error "The #{args.branch} branch does not exist."
+      `git push origin demo#{args.demo} --force`
+
+      deploy? "demo#{args.demo}"
+
+      puts "\x1B[32m OK \x1B[0m"
     end
   end
   
