@@ -133,6 +133,11 @@ namespace :git do
     error "Both the demo and the branch values must be given." unless args.demo && args.branch
     demo_site = "demo#{args.demo}"
     old_branch =  current_branch_name
+    
+    if uncommitted_changes?
+      error "There are uncommitted changes on your current branch. Please commit these changes before continuing."
+      return
+    end
 
     unless branch_exists? demo_site
       if confirm?("The branch #{demo_site} does not exist. Do you want to create it now? (y/n)")
@@ -145,18 +150,15 @@ namespace :git do
         return
       end
     end
-    if uncommitted_changes?
-      error "There are uncommitted changes on your current branch. Please commit these changes before continuing."
-    else
-      `git checkout #{args.branch}`
-      `git branch -f #{demo_site}`
-      `git push -u origin #{demo_site}`
 
-      deploy? "#{demo_site}"
+    `git checkout #{args.branch}`
+    `git branch -f #{demo_site}`
+    `git push -u origin #{demo_site}`
 
-      `git checkout #{old_branch}`
-      puts "\x1B[32m OK \x1B[0m"
-    end
+    deploy? "#{demo_site}"
+
+    `git checkout #{old_branch}`
+    puts "\x1B[32m OK \x1B[0m"
   end
   
   def workflow_for(env_name)
