@@ -132,7 +132,7 @@ namespace :git do
   def demo_workflow(args)
     error "Both the demo and the branch values must be given." unless args.demo && args.branch
     demo_site = "demo#{args.demo}"
-    old_branch =  current_branch
+    old_branch =  current_branch_name
 
     unless branch_exists? demo_site
       if confirm?("The branch #{demo_site} does not exist. Do you want to create it now? (y/n)")
