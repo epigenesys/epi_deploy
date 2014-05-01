@@ -13,11 +13,11 @@ namespace :git do
     APP_VERSION
   end
   
-  def write_app_version(v)
-    File.open(version_file_path, 'w') { |f| f.write("APP_VERSION = '#{v}'") }
-    load version_file_path
-  end
-  
+   def write_app_version(v)
+     File.open(version_file_path, 'w') { |f| f.write("APP_VERSION = '#{v}'") }
+     load version_file_path
+   end
+   
   def major_version_bump(current_version = read_app_version)
     version_number_array = current_version.split('.')
     version_number_array[0] = version_number_array[0].to_i + 1
@@ -132,11 +132,13 @@ namespace :git do
   def demo_workflow(args)
     error "Both the demo and the branch values must be given." unless args.demo && args.branch
     demo_site = "demo#{args.demo}"
+    old_branch =  current_branch
 
     unless branch_exists? demo_site
       if confirm?("The branch #{demo_site} does not exist. Do you want to create it now? (y/n)")
         `git checkout -b #{demo_site}`
         `git push -u origin #{demo_site}`
+        `cap #{demo_site} deploy:setup`
         puts "\x1B[32m created \x1B[0m"
       else
         error "The branch #{demo_site} does not exist and was not created."
@@ -147,10 +149,12 @@ namespace :git do
       error "There are uncommitted changes on your current branch. Please commit these changes before continuing."
     else
       `git checkout #{args.branch}`
-      `git push origin #{demo_site} --force`
+      `git branch -f #{demo_site}`
+      `git push -u origin #{demo_site}`
 
       deploy? "#{demo_site}"
 
+      `git checkout #{old_branch}`
       puts "\x1B[32m OK \x1B[0m"
     end
   end
