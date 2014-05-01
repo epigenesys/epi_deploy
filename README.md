@@ -30,3 +30,6 @@ This will create a hotfix branch from the live branch specified and bump the ver
 ####rake git:apply_hotfix
 This will merge your hotfix into the appropriate live branch and optionally deploy. You should then manually merge the hotfix into deploy and master if necessary and delete the hotfix branch. 
 Note: you must be in the hotfix branch you wish to apply before running this task.
+
+####rake git:demo:release[demo,branch]
+This will push the given branch to the given demo number site, independent of master. This is mainly used for ticket-based projects.
