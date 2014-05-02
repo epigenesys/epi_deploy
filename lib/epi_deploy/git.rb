@@ -155,7 +155,9 @@ namespace :git do
     `git branch -f #{demo_site}`
     `git push -u origin #{demo_site}`
 
+    `cap #{demo_site} deploy:db:reset`
     deploy? "#{demo_site}"
+    `cap #{demo_site} deploy:db:seed`
 
     `git checkout #{old_branch}`
     puts "\x1B[32m OK \x1B[0m"
