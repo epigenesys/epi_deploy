@@ -243,7 +243,7 @@ namespace :git do
   namespace :demo do
     desc "When you're ready to deploy to demo run this task. You will be prompted to choose which version (tag) to merge into the demo branch and optionally deploy."
     task :release, [:demo, :branch] => [:environment] do |t, args|
-      if args.blank?
+      if args.count == 0
         workflow_for('demo')
       else
         demo_workflow(args)
