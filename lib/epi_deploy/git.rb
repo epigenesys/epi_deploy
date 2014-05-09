@@ -72,7 +72,7 @@ namespace :git do
   def demo_deploy?(demo)
     if confirm?("Would you like to deploy to the #{demo} site? (y/n)")
       `cap #{demo} deploy`
-      `cap #{demo} deploy:db:reset`
+      `cap #{demo} deploy:db:demo_reset`
       `cap #{demo} deploy:migrate`
       `cap #{demo} deploy:db:seed`
     end
