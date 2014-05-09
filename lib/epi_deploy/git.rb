@@ -69,6 +69,15 @@ namespace :git do
     puts "\x1B[31mError: #{message}\x1B[0m" 
   end
 
+  def demo_deploy?(demo)
+    if confirm?("Would you like to deploy to the #{demo} site? (y/n)")
+      `cap #{demo} deploy`
+      `cap #{demo} deploy:db:reset`
+      `cap #{demo} deploy:migrate`
+      `cap #{demo} deploy:db:seed`
+    end
+  end
+
   def deploy?(server)
     if confirm?("Would you like to deploy to the #{server} server? (y/n)")
       `cap #{server} deploy:migrations`
@@ -155,9 +164,7 @@ namespace :git do
     `git branch -f #{demo_site}`
     `git push -u origin #{demo_site}`
 
-    `cap #{demo_site} deploy:db:reset`
-    deploy? "#{demo_site}"
-    `cap #{demo_site} deploy:db:seed`
+    demo_deploy? "#{demo_site}"
 
     `git checkout #{old_branch}`
     puts "\x1B[32m OK \x1B[0m"
