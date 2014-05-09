@@ -1,4 +1,4 @@
-# EpiDeploy
+# epiDeploy
 
 This gem provides wrappers for common tasks in the epiGenesys git branching / deployment strategy.
 
@@ -28,7 +28,7 @@ When you’re ready to deploy to production run this task. You will be prompted 
 This will create a hotfix branch from the live branch specified and bump the version ready for you to implement the fix.
 
 ####rake git:apply_hotfix
-This will merge your hotfix into the appropriate live branch and optionally deploy. You should then manually merge the hotfix into deploy and master if necessary and delete the hotfix branch. 
+This will merge your hotfix into the appropriate live branch and optionally deploy. You should then manually merge the hotfix into master and any other branches if necessary and delete the hotfix branch. 
 Note: you must be in the hotfix branch you wish to apply before running this task.
 
 ####rake git:demo:release[demo,branch]
