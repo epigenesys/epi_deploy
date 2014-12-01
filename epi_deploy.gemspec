@@ -6,10 +6,10 @@ require 'epi_deploy/version'
 Gem::Specification.new do |gem|
   gem.name          = "epi_deploy"
   gem.version       = EpiDeploy::VERSION
-  gem.authors       = ["Anthony Nettleship", "Shuo Chen"]
-  gem.email         = ["a.nettleship@epigenesys.co.uk", "s.chen@epigenesys.co.uk"]
-  gem.description   = "A gem to help with the git branching model."
-  gem.summary       = "EpiDeploy"
+  gem.authors       = ["Anthony Nettleship", "Shuo Chen", "Chris Hunt"]
+  gem.email         = ["a.nettleship@epigenesys.org.uk", "s.chen@epigenesys.org.uk", "c.hunt@epigenesys.org.uk"]
+  gem.description   = "A gem to facilitate deployment across multiple git branches and evironments"
+  gem.summary       = "eD"
   gem.homepage      = "http://www.epigenesys.co.uk"
 
   gem.files         = `git ls-files`.split($/)
@@ -17,7 +17,5 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
   
-  gem.add_dependency('rake')
   gem.add_dependency('slop')
-  gem.add_dependency('highline')
 end

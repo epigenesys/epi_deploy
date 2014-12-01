@@ -1,8 +1,59 @@
 #!/usr/bin/env ruby
 
 require 'slop'
-require 'highline'
 require_relative '../lib/epi_deploy/release'
+
+def print_success(text)
+  puts  "\x1B[32m#{text}\x1B[0m" 
+end
+
+def print_failure(text)
+  puts "\x1B[31m#{text}\x1B[0m" 
+end
+
+def print_notice(text)
+  puts text
+end
+
+
+def prompt_for_a_release
+  print_notice "Select a recent release (or just press enter for latest):"
+  
+  valid_releases = [:latest]
+  EpiDeploy::Release.all(limit: 5).each_with_index do |release, i|
+    number = i + 1
+    valid_releases << number.to_s
+    print_notice "#{number}: #{release}"
+  end
+
+  selected_release = nil
+  while selected_release.nil? do
+    selected_release = (STDIN.gets[/\d/] rescue nil) || :latest
+    unless valid_releases.include?(selected_release)
+      print_failure "Invalid selection '#{selected_release}'. Try again..."
+      selected_release = nil
+    end
+  end
+  selected_release
+end
+
+def determine_release_reference(options)
+  options = options.to_hash
+  if options.key? :ref
+    reference = options[:ref].to_s.strip
+    if reference.empty?
+      prompt_for_a_release
+    else
+      reference
+    end
+  else
+    :latest
+  end
+end
+
+def valid_environments
+  [] #DIR[File.join(File.dirname(__FILE__), '../config/deploy/*.rb')].map{|filename| filename.sub!['.rb', '']}
+end
 
 begin
 
@@ -16,11 +67,15 @@ begin
       on :d=, :deploy=, 'Deploy to specified environment(s)', argument: :optional
 
       run do |options, args|
-        puts "options #{options.to_hash} and args: #{args.inspect}"
+        print_notice "options #{options.to_hash} and args: #{args.inspect}"
   
         release = EpiDeploy::Release.new options.to_hash
-        release.create!
-        puts "Release #{release.version} created with tag #{release.tag}"
+        if release.create!
+          print_success "Release #{release.version} created with tag #{release.tag}"
+          release.deploy! if options.deploy?
+        else
+          print_failure "Something went wrong."
+        end
       end
     end
 
@@ -28,20 +83,22 @@ begin
       description 'Deploys an existing release'
 
       on :r=, :ref=, 'Git reference to deploy', argument: :optional
-
+      
       run do |options, environments|
-        puts "options #{options.to_hash} and environments: #{environments.inspect}"
-      end 
+        invalid_environments = environments - valid_environments
+        raise Slop::InvalidArgumentError.new("Environment '#{invalid_environments.first}' does not exist") unless invalid_environments.empty?
+        release = EpiDeploy::Release.find determine_release_reference(options)
+        release.deploy!
+      end
 
     end
     
-    
     run do |options, args|
-      say "<%= color('Valid commands are release and deploy', RED) %>."
+      print_failure "Valid commands are 'release' and 'deploy'."
     end
   
   end
   
-rescue Slop::InvalidOptionError => e
-  puts e.message
+rescue Slop::InvalidOptionError, Slop::InvalidArgumentError => e
+  print_failure e.message
 end
