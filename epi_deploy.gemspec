@@ -19,4 +19,5 @@ Gem::Specification.new do |gem|
   
   gem.add_dependency('rake')
   gem.add_dependency('slop')
+  gem.add_dependency('highline')
 end
