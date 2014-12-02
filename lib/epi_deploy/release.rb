@@ -4,10 +4,6 @@ module EpiDeploy
     attr_accessor :version
     attr_accessor :tag
   
-    def initialize(options)
-    
-    end
-  
     def create!
       self.version = 'v13'
       self.tag     = '14DEC01-1618-da46vs-v13'
