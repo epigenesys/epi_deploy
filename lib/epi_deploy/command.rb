@@ -22,7 +22,7 @@ module EpiDeploy
       release = release_class.new
       if release.create!
         print_success "Release #{release.version} created with tag #{release.tag}"
-        release.deploy! if options.deploy? && check_environments_are_valid(environments)
+        release.deploy!(environments) if options.deploy? && check_environments_are_valid(environments)
       else
         print_failure "Something went wrong."
       end

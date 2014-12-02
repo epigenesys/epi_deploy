@@ -2,18 +2,27 @@ $: << File.expand_path('../../lib', __FILE__)
 require 'epi_deploy/release'
 
 class MockGit
-  def initialize(options)
+  def initialize(options = {})
     @on_master       = options[:on_master].nil?       ? true  : options[:on_master]
     @pending_changes = options[:pending_changes].nil? ? false : options[:pending_changes]
   end
-  
   def on_master?; @on_master; end
   def pending_changes?; @pending_changes; end
+  def short_commit_hash; 'abc1234'; end
+  def commit(msg); end
+  def tag(name); end
+  def push; end
+  def pull; end
 end
 
 describe EpiDeploy::Release do
   
   describe "#create!" do
+  
+    let(:git) { MockGit.new }
+    before do
+      subject.git = git
+    end
   
     describe "preconditions" do   
       it "can only be done on the master branch" do
@@ -29,19 +38,42 @@ describe EpiDeploy::Release do
       end
     end
     
-    it "performs a git pull of master to ensure code is the latest and stops if it fails (e.g. due to conflicts)" do
-      git = MockGit.new
-      subject.git = git
+    it "performs a git pull of master to ensure code is the latest" do
+      allow(subject).to receive_messages(bump_version: nil)
       expect(git).to receive(:pull)
+      subject.create!
     end
     
-    it "bumps the version number"
+    it "stops with a warning message when a git pull fails (eg. merge errors)" do
+      allow(subject).to receive_messages(bump_version: nil)
+      expect(git).to receive(:pull)
+      subject.create!
+    end
     
-    it "commits the new version number"
+    it "bumps the version number" do
+      subject.version_file_stream = StringIO.new("41")
+      subject.create!
+      expect(subject.version_file_stream.read).to eq("42")
+    end
     
-    it "creates a tag in the format YYMonDD-HHMM-CommitRef-version for the new commit"
+    it "commits the new version number" do
+      allow(subject).to receive_messages bump_version: 42
+      expect(git).to receive(:commit).with('Bumped to version 42')
+      subject.create!
+    end
     
-    it "pushes the new version to master to reduce the chance of version number collisions"
-  
+    it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version for the new commit" do
+      allow(subject).to receive_messages bump_version: 42
+      now = Time.new 2014, 12, 1, 16, 15
+      allow(Time).to receive_messages now: now 
+      expect(git).to receive(:tag).with('2014dec01-1615-abc1234-v42')
+      subject.create!
+    end
+    
+    it "pushes the new version to master to reduce the chance of version number collisions" do
+      allow(subject).to receive_messages bump_version: 42
+      expect(git).to receive(:push)
+      subject.create!
+    end
   end
 end
