@@ -3,8 +3,6 @@
 require 'slop'
 require_relative '../lib/epi_deploy/command'
 
-include EpiDeploy::Helpers
-
 begin
   opts = Slop.parse strict: true do
   

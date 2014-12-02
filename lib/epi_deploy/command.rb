@@ -1,3 +1,6 @@
+require_relative './message_helper.rb'
+require_relative './release.rb'
+
 module EpiDeploy
   class Command
     
@@ -11,9 +14,12 @@ module EpiDeploy
       self.args    = args
     end
 
-    def release
+    def release(options = {})
+      setup_class = options[:setup_class] || EpiDeploy::Setup
+      setup_class.initial_setup_if_required
+      
       environments = options[:deploy]
-      release = EpiDeploy::Release.new
+      release = release_class.new
       if release.create!
         print_success "Release #{release.version} created with tag #{release.tag}"
         release.deploy! if options.deploy? && check_environments_are_valid(environments)
@@ -27,7 +33,6 @@ module EpiDeploy
       release = EpiDeploy::Release.find determine_release_reference(options)
       release.deploy!
     end
-    
     
     
     private
