@@ -1,4 +1,4 @@
-$: << File.expand_path('../../lib', __FILE__)
+require 'spec_helper'
 require 'epi_deploy/command'
 require 'slop'
 
