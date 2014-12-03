@@ -1,5 +1,5 @@
 require_relative './message_helper'
-require_relative './git'
+require 'git'
 
 module EpiDeploy
   class Release
@@ -8,7 +8,7 @@ module EpiDeploy
     
     MONTHS = %w(jan feb mar apr may jun jul aug sep oct nov dec)
   
-    attr_accessor :version_file_stream, :tag, :git
+    attr_accessor :version_file_stream, :tag, :git, :commit
   
     def create!
       return print_failure 'You can only create a release on the master branch. Please switch to master and try again.' unless git.on_master?
@@ -31,23 +31,29 @@ module EpiDeploy
     
     def deploy!(environments)
       environments.each do |environment|
-        `bundle exec cap #{environment} deploy:migrations`
+        # Force the branch to the commit we want to deploy
+        git.change_branch_commit(environment, commit)
+        git.push(force: true)
+        Kernel.system "bundle exec cap #{environment} deploy:migrations"
       end
     end
     
     def self.find(reference)
-      new
+      release = self.new(EpiDeploy::Git.new(blah))
+      commit = release.git.get_commit(reference)
+      return nil if commit.nil?
+      release.commit = commit
+      release
     end
     
-    def self.all(options)
-      #`git tag`.split.sort_by { |ver| ver[/[\d.]+/].split('.').map(&:to_i) }.reverse
-      %w(one two three)
+    def self.tag_list(options)
+      git.tag_list(options)
     end
   
     private
       def bump_version
-        new_version_number = self.version_file_stream.read.to_i + 1
-        self.version_file_stream = StringIO.new(new_version_number.to_s)
+        new_version_number = extract_version_number(self.version_file_stream.read) + 1
+        self.version_file_stream = StringIO.new("APP_VERSION = '#{new_version_number}'")
         new_version_number
       end
       
@@ -55,6 +61,10 @@ module EpiDeploy
       def date_and_time_for_tag(time_class = (Time.respond_to?(:zone) ? Time.zone : Time))
         time = time_class.now
         time.strftime "%Y#{MONTHS[time.month - 1]}%d-%H%M"
+      end
+      
+      def extract_version_number(file_contents)
+        file_contents.scan(/APP_VERSION = '(.*)'/).last.first.to_i
       end
 
   end

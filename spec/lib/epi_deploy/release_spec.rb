@@ -11,19 +11,20 @@ class MockGit
   def short_commit_hash; 'abc1234'; end
   def commit(msg); end
   def tag(name); end
-  def push; end
+  def push(opts = {}); end
   def pull; end
+  def change_branch_commit(branch, commit); end
 end
 
 describe EpiDeploy::Release do
+
+  let(:git) { MockGit.new }
+  before do
+    subject.git = git
+  end
   
   describe "#create!" do
-  
-    let(:git) { MockGit.new }
-    before do
-      subject.git = git
-    end
-  
+
     describe "preconditions" do   
       it "can only be done on the master branch" do
         subject.git = MockGit.new on_master: false
@@ -51,9 +52,9 @@ describe EpiDeploy::Release do
     end
     
     it "bumps the version number" do
-      subject.version_file_stream = StringIO.new("41")
+      subject.version_file_stream = StringIO.new("APP_VERSION = '41'")
       subject.create!
-      expect(subject.version_file_stream.read).to eq("42")
+      expect(subject.version_file_stream.read).to eq("APP_VERSION = '42'")
     end
     
     it "commits the new version number" do
@@ -76,4 +77,16 @@ describe EpiDeploy::Release do
       subject.create!
     end
   end
+  
+  describe "#deploy!" do
+    
+    it "runs the capistrano deploy command for each of the environments given" do
+      expect(Kernel).to receive(:system).with('bundle exec cap a deploy:migrations')
+      expect(Kernel).to receive(:system).with('bundle exec cap b deploy:migrations')
+      expect(Kernel).to receive(:system).with('bundle exec cap c deploy:migrations')
+      subject.deploy! %w(a b c)
+    end
+    
+  end
+  
 end

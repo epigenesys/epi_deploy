@@ -8,30 +8,40 @@ module EpiDeploy
     
     attr_accessor :options
     attr_accessor :args
+    attr_accessor :release_class
     
-    def initialize(options, args)
+    def initialize(options, args, release_class = EpiDeploy::Release)
       self.options = options
       self.args    = args
+      self.release_class = release_class
     end
 
-    def release(options = {})
-      setup_class = options[:setup_class] || EpiDeploy::Setup
+    def release(setup_class = EpiDeploy::Setup)
       setup_class.initial_setup_if_required
       
-      environments = options[:deploy]
-      release = release_class.new
+      release = self.release_class.new
       if release.create!
         print_success "Release #{release.version} created with tag #{release.tag}"
-        release.deploy!(environments) if options.deploy? && check_environments_are_valid(environments)
+        environments = self.options.to_hash[:deploy]
+        self.deploy(environments) unless environments.nil?
       else
-        print_failure "Something went wrong."
+        print_failure "An error occurred."
       end
     end
     
-    def deploy
-      check_environments_are_valid(args)
-      release = EpiDeploy::Release.find determine_release_reference(options)
-      release.deploy!
+    def deploy(environments = self.args)
+      raise Slop::InvalidArgumentError.new("No environments provided") unless environments.any?
+      check_environments_are_valid(environments)
+      release = self.release_class.find determine_release_reference(options)
+      if release.nil?
+        print_failure "You did not enter a valid Git reference. Please try again."
+      else
+        if release.deploy!(environments)
+          print_success "Deployment complete."
+        else
+          print_failure "An error occurred."
+        end
+      end
     end
     
     
@@ -41,7 +51,7 @@ module EpiDeploy
         print_notice "Select a recent release (or just press enter for latest):"
 
         valid_releases = [:latest]
-        EpiDeploy::Release.all(limit: 5).each_with_index do |release, i|
+        self.release_class.tag_list.each_with_index do |release, i|
           number = i + 1
           valid_releases << number.to_s
           print_notice "#{number}: #{release}"
@@ -62,11 +72,8 @@ module EpiDeploy
         options = options.to_hash
         if options.key? :ref
           reference = options[:ref].to_s.strip
-          if reference.empty?
-            prompt_for_a_release
-          else
-            reference
-          end
+          reference = prompt_for_a_release if reference.empty?
+          reference
         else
           :latest
         end
