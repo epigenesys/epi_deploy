@@ -6,6 +6,7 @@ class MockGit
     @on_master       = options[:on_master].nil?       ? true  : options[:on_master]
     @pending_changes = options[:pending_changes].nil? ? false : options[:pending_changes]
   end
+  def add(files); end
   def on_master?; @on_master; end
   def pending_changes?; @pending_changes; end
   def short_commit_hash; 'abc1234'; end
@@ -20,11 +21,10 @@ describe EpiDeploy::Release do
 
   let(:git) { MockGit.new }
   before do
-    allow(subject).to receive_messages(git: git)
+    allow(subject).to receive_messages(git: git, app_version: double(bump!: 42, version_file_path: ''))
   end
   
   describe "#create!" do
-
     describe "preconditions" do   
       it "can only be done on the master branch" do
         allow(subject).to receive_messages(git: MockGit.new(on_master: false))
@@ -52,9 +52,10 @@ describe EpiDeploy::Release do
     end
     
     it "bumps the version number" do
-      subject.version_file_stream = StringIO.new("APP_VERSION = '41'")
+      app_version = double version_file_path: ''
+      allow(subject).to receive_messages(app_version: app_version)
+      expect(app_version).to receive(:bump!)
       subject.create!
-      expect(subject.version_file_stream.read).to eq("APP_VERSION = '42'")
     end
     
     it "commits the new version number" do

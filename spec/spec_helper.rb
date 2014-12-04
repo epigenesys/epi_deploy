@@ -1,2 +1,5 @@
 $: << File.expand_path('../../lib', __FILE__)
-Dir.glob(::File.expand_path('../support/*.rb', __FILE__)).each { |f| require_relative f }
+
+def run_ed(commands)
+  run_simple "#{File.join(File.dirname(__FILE__), '../bin/ed')} #{commands}", false
+end

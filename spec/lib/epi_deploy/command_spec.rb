@@ -76,7 +76,7 @@ describe "Command" do
   
   
   describe "deploy" do
-        
+    before { allow(Kernel).to receive(:abort) }
     subject { EpiDeploy::Command.new options, args, MockRelease }
     
     describe "required arguments" do

@@ -1,4 +1,5 @@
 require 'git'
+require_relative './helpers'
 
 module EpiDeploy
   class Git
@@ -22,6 +23,10 @@ module EpiDeploy
         Kernel.system "git push#{' -f' if options[:force]}"
       end
       
+      def add(files = nil)
+        git.add files
+      end
+      
       def short_commit_hash
         git.log.first.sha[0..6]
       end
@@ -31,6 +36,10 @@ module EpiDeploy
       end
       
       def get_commit(git_reference)
+        if git_reference == :latest
+          fail("There is no latest release. Create one, or specify a reference with --ref") if tag_list.empty?
+          git_reference = tag_list.first
+        end
         git_object = git.object(git_reference)
         return git_object if git_object.is_a?(::Git::Object::Commit)
         nil
@@ -41,7 +50,7 @@ module EpiDeploy
       end
       
       def tag_list(options = {limit: 5})
-        `git tag`.split.reverse
+        @tag_list ||= `git tag`.split.reverse
       end
    
       private

@@ -7,7 +7,7 @@ require_relative './setup.rb'
 module EpiDeploy
   class Command
     
-    include EpiDeploy::MessageHelper
+    include EpiDeploy::Helpers
     
     attr_accessor :options
     attr_accessor :args
@@ -54,7 +54,7 @@ module EpiDeploy
         print_notice "Select a recent release (or just press enter for latest):"
 
         valid_releases = [:latest]
-        self.release_class.tag_list.each_with_index do |release, i|
+        self.release_class.new.tag_list.each_with_index do |release, i|
           number = i + 1
           valid_releases << number.to_s
           print_notice "#{number}: #{release}"
@@ -72,8 +72,7 @@ module EpiDeploy
       end
 
       def determine_release_reference(options)
-        options = options.to_hash
-        if options.key? :ref
+        if options.ref?
           reference = options[:ref].to_s.strip
           reference = prompt_for_a_release if reference.empty?
           reference
