@@ -6,14 +6,14 @@ module EpiDeploy
     end
     
     private
-      def create_version_file
+      def self.create_version_file
         File.open version_file_path, 'w' do |f|
           f.write "APP_VERSION = '0'"
         end
       end
       
-      def version_file_path
-        File.join(File.dirname(__FILE__), '../../config/initializers/version.rb')
+      def self.version_file_path
+        File.join(Dir.pwd, 'config/initializers/version.rb')
       end
   
   end

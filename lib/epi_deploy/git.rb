@@ -2,11 +2,6 @@ require 'git'
 
 module EpiDeploy
   class Git
-    
-      def initialize(current_directory)
-        @git = ::Git.open(current_directory, log: Logger.new(STDOUT))
-      end
-    
       def on_master?
         git.current_branch == "master"
       end
@@ -46,12 +41,12 @@ module EpiDeploy
       end
       
       def tag_list(options = {limit: 5})
-        Kernel.system("git tag").split.reverse
+        `git tag`.split.reverse
       end
    
       private
         def git
-          @git
+          @git ||= ::Git.open(Dir.pwd)
         end
     
   end

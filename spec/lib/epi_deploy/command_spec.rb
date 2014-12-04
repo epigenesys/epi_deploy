@@ -20,7 +20,10 @@ class MockRelease
 end
 
 describe "Command" do
-  
+  before do
+    $stdout = StringIO.new
+    $stderr = StringIO.new
+  end
   let(:options) { MockOptions.new }
   let(:args)    { [] }
   

@@ -8,7 +8,7 @@ module EpiDeploy
     
     MONTHS = %w(jan feb mar apr may jun jul aug sep oct nov dec)
   
-    attr_accessor :version_file_stream, :tag, :git, :commit
+    attr_accessor :version_file_stream, :tag, :commit
   
     def create!
       return print_failure 'You can only create a release on the master branch. Please switch to master and try again.' unless git.on_master?
@@ -39,7 +39,7 @@ module EpiDeploy
     end
     
     def self.find(reference)
-      release = self.new(EpiDeploy::Git.new(blah))
+      release = self.new
       commit = release.git.get_commit(reference)
       return nil if commit.nil?
       release.commit = commit
@@ -64,7 +64,11 @@ module EpiDeploy
       end
       
       def extract_version_number(file_contents)
-        file_contents.scan(/APP_VERSION = '(.*)'/).last.first.to_i
+        file_contents.match(/APP_VERSION = '(?<version>\d+).*'/)[:version].to_i
+      end
+      
+      def git(klass = EpiDeploy::Git)
+        @git ||= klass.new
       end
 
   end

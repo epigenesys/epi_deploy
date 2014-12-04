@@ -25,9 +25,8 @@ begin
       on :r=, :ref=, 'Git reference to deploy', argument: :optional
       
       run do |options, args|
-        puts options.to_hash
-        # command = EpiDeploy::Command.new(options, args)
-        # command.deploy
+        command = EpiDeploy::Command.new(options, args)
+        command.deploy
       end
     end
     

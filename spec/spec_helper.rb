@@ -1,15 +1,2 @@
 $: << File.expand_path('../../lib', __FILE__)
-
-require 'aruba/rspec'
-
-RSpec.configure do |config|
-  config.include ArubaDoubles
-
-  config.before :each do
-    Aruba::RSpec.setup
-  end
-
-  config.after :each do
-    Aruba::RSpec.teardown
-  end
-end
+Dir.glob(::File.expand_path('../support/*.rb', __FILE__)).each { |f| require_relative f }

@@ -5,5 +5,5 @@ gemspec
 
 group :development do
   gem "rspec"
-  gem "aruba-rspec"
+  gem "aruba"
 end

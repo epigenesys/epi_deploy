@@ -1,5 +1,8 @@
+Dir[File.join(File.dirname(__FILE__), '*.rb')].each { |f| require_relative f }
+
 require_relative './message_helper.rb'
 require_relative './release.rb'
+require_relative './setup.rb'
 
 module EpiDeploy
   class Command
@@ -81,7 +84,7 @@ module EpiDeploy
 
       def valid_environments
         Dir.glob(
-          File.join(File.dirname(__FILE__), '../../config/deploy/*.rb')
+          File.join(Dir.pwd, 'config/deploy/*.rb')
         ).map do |filepath| 
           File.basename filepath, ".rb"
         end
