@@ -48,7 +48,7 @@ describe "Command" do
       release = MockRelease.new
       allow(release).to receive_messages(create!: false)
       allow(MockRelease).to receive_messages(new: release)
-      expect(subject).to receive_messages(print_failure: "An error occurred")
+      expect(subject).to receive_messages(fail: "An error occurred")
       subject.release(setup_class)
     end
 
@@ -127,7 +127,7 @@ describe "Command" do
       it "errors if the reference not exist" do
         subject.options = { ref: 'invalid_ref' }
         allow(subject).to receive_messages(valid_reference?: false)
-        expect(subject).to receive_messages(print_failure: "You did not enter a valid Git reference. Please try again.")
+        expect(subject).to receive_messages(fail: "You did not enter a valid Git reference. Please try again.")
         subject.deploy
       end
     end

@@ -1,4 +1,4 @@
-require_relative './message_helper'
+require_relative './helpers'
 require 'git'
 
 module EpiDeploy
@@ -11,8 +11,8 @@ module EpiDeploy
     attr_accessor :version_file_stream, :tag, :commit
   
     def create!
-      return print_failure 'You can only create a release on the master branch. Please switch to master and try again.' unless git.on_master?
-      return print_failure 'You have pending changes, please commit or stash them and try again.'  if git.pending_changes?
+      return fail 'You can only create a release on the master branch. Please switch to master and try again.' unless git.on_master?
+      return fail 'You have pending changes, please commit or stash them and try again.'  if git.pending_changes?
       
       begin
         git.pull
@@ -22,10 +22,9 @@ module EpiDeploy
       
         self.tag = "#{date_and_time_for_tag}-#{git.short_commit_hash}-v#{new_version}"
         git.tag self.tag
-      
         git.push
-      rescue Git::GitExecuteError => e
-        print_failure "A git error occurred: #{e.message}"
+      rescue ::Git::GitExecuteError => e
+        fail "A git error occurred: #{e.message}"
       end
     end
     

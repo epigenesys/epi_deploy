@@ -11,7 +11,7 @@ module EpiDeploy
       end
       
       def pull
-        git.status.pull
+        git.pull
       end
       
       def commit(message)
@@ -32,7 +32,7 @@ module EpiDeploy
       
       def get_commit(git_reference)
         git_object = git.object(git_reference)
-        return git_object if git_object.is_a?(Git::Object::Commit)
+        return git_object if git_object.is_a?(::Git::Object::Commit)
         nil
       end
       

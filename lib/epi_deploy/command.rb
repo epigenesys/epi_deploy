@@ -1,6 +1,6 @@
 Dir[File.join(File.dirname(__FILE__), '*.rb')].each { |f| require_relative f }
 
-require_relative './message_helper.rb'
+require_relative './helpers.rb'
 require_relative './release.rb'
 require_relative './setup.rb'
 
@@ -28,7 +28,7 @@ module EpiDeploy
         environments = self.options.to_hash[:deploy]
         self.deploy(environments) unless environments.nil?
       else
-        print_failure "An error occurred."
+        fail "An error occurred."
       end
     end
     
@@ -37,12 +37,12 @@ module EpiDeploy
       check_environments_are_valid(environments)
       release = self.release_class.find determine_release_reference(options)
       if release.nil?
-        print_failure "You did not enter a valid Git reference. Please try again."
+        fail "You did not enter a valid Git reference. Please try again."
       else
         if release.deploy!(environments)
           print_success "Deployment complete."
         else
-          print_failure "An error occurred."
+          fail "An error occurred."
         end
       end
     end
@@ -64,7 +64,7 @@ module EpiDeploy
         while selected_release.nil? do
           selected_release = (STDIN.gets[/\d/] rescue nil) || :latest
           unless valid_releases.include?(selected_release)
-            print_failure "Invalid selection '#{selected_release}'. Try again..."
+            fail "Invalid selection '#{selected_release}'. Try again..."
             selected_release = nil
           end
         end
