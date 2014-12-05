@@ -74,7 +74,7 @@ module EpiDeploy
       end
       
       def run_cap_deploy_to(environment)
-        $stdout.print "Deploying to #{environment}... "
+        $stdout.puts "Deploying to #{environment}... "
         Kernel.system "bundle exec cap #{environment} deploy:migrations"
       end
 
