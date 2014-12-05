@@ -1,9 +1,5 @@
 Dir[File.join(File.dirname(__FILE__), '*.rb')].each { |f| require_relative f }
 
-require_relative './helpers.rb'
-require_relative './release.rb'
-require_relative './setup.rb'
-
 module EpiDeploy
   class Command
     

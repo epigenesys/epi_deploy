@@ -6,4 +6,5 @@ gemspec
 group :development do
   gem "rspec"
   gem "aruba"
+  gem "aruba-doubles"
 end

@@ -2,7 +2,7 @@ require 'git'
 require_relative './helpers'
 
 module EpiDeploy
-  class Git
+  class GitWrapper
       def on_master?
         git.current_branch == "master"
       end
@@ -40,9 +40,14 @@ module EpiDeploy
           fail("There is no latest release. Create one, or specify a reference with --ref") if tag_list.empty?
           git_reference = tag_list.first
         end
-        git_object = git.object(git_reference)
-        return git_object if git_object.is_a?(::Git::Object::Commit)
-        nil
+        
+        git_object_type = git.lib.object_type(git_reference)
+
+        case git_object_type
+          when 'tag'    then git.tag(git_reference)
+          when 'commit' then git.object(git_reference)
+          else nil
+        end
       end
       
       def change_branch_commit(branch, commit)

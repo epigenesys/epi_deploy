@@ -1,6 +1,9 @@
 # epiDeploy
+---
 
-This gem provides wrappers for common tasks in the epiGenesys git branching / deployment strategy.
+## Description
+
+This gem provides a convenient interface for creating releases and deploying using Git and Capistrano.
 
 ## Installation
 
@@ -10,26 +13,36 @@ Add this line to your application's Gemfile:
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 
 ## Usage
 
-####rake git:setup
-Run this task at the start to check your repository is set up correctly and create the necessary branches if they don’t exist.
+### Initial Setup
+No initial setup is required as prerequisites are checked automatically before each command is run.
 
-####rake git:demo:release || rake git:qa:release
-When you’re ready to deploy a release to environment from master run this task. You will be asked if you want to create a new tag or use an existing one. The major version number will be bumped, the commit tagged and merged into the branch (and pushed to origin). Optional deployment.
+### Commands
 
-####rake git:production:release
-When you’re ready to deploy to production run this task. You will be prompted to choose which version (tag) to merge into the production branch and optionally deploy.
+This command will bump the version in config/version.rb, create a Git tag in the format YYYYmonDD-HHMM-*&lt;short_commit_hash&gt;*-v*&lt;version&gt;* and push it to the remote repository. This can only be done on the **master** branch.
 
-####rake git:start_hotfix_for[<demo|production>]
-This will create a hotfix branch from the live branch specified and bump the version ready for you to implement the fix.
+```bash
+$ ed release
+```
 
-####rake git:apply_hotfix
-This will merge your hotfix into the appropriate live branch and optionally deploy. You should then manually merge the hotfix into master and any other branches if necessary and delete the hotfix branch. 
-Note: you must be in the hotfix branch you wish to apply before running this task.
+Optional flag to deploy to the given environment(s) after creating the release. Shorthand -d.
 
-####rake git:demo:release[demo,branch]
-This will push the given branch to the given demo number site, independent of master. This is mainly used for ticket-based projects.
+```bash
+$ ed release --deploy demo:production
+```
+
+Deploy the latest release to the given environment(s).
+
+```bash
+$ ed deploy demo:production
+```
+
+Optional flag to specify which tag, commit, or branch to deploy to the given environment(s). Shorthand -r. If the flag is provided without a reference you will be prompted to choose from the latest releases.
+
+```bash
+$ ed deploy demo:production --ref <reference>
+```

@@ -20,9 +20,10 @@ describe "Deploy" do
   it "deploys latest release" do
     setup_aruba_and_git
     `git tag -a example_tag -m "For testing"`  # Create a pretend release
-    `git push`
-    expect(Kernel).to receive(:system).with("bundle exec cap production deploy:migrations")
+    `git push &> /dev/null`
+    double_cmd('bundle')
     run_ed 'deploy production'
+    expect(all_output).to include('Deploying to production...')
     assert_exit_status(0)
   end
   

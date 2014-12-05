@@ -19,21 +19,21 @@ end
 
 describe EpiDeploy::Release do
 
-  let(:git) { MockGit.new }
+  let(:git_wrapper) { MockGit.new }
   before do
-    allow(subject).to receive_messages(git: git, app_version: double(bump!: 42, version_file_path: ''))
+    allow(subject).to receive_messages(git_wrapper: git_wrapper, app_version: double(bump!: 42, version_file_path: ''))
   end
   
   describe "#create!" do
     describe "preconditions" do   
       it "can only be done on the master branch" do
-        allow(subject).to receive_messages(git: MockGit.new(on_master: false))
+        allow(subject).to receive_messages(git_wrapper: MockGit.new(on_master: false))
         expect(subject).to receive(:fail).with('You can only create a release on the master branch. Please switch to master and try again.')
         subject.create!
       end
     
       it "errors when pending changes exist" do
-        allow(subject).to receive_messages(git: MockGit.new(pending_changes: true))
+        allow(subject).to receive_messages(git_wrapper: MockGit.new(pending_changes: true))
         expect(subject).to receive(:fail).with('You have pending changes, please commit or stash them and try again.')
         subject.create!
       end
@@ -41,13 +41,13 @@ describe EpiDeploy::Release do
     
     it "performs a git pull of master to ensure code is the latest" do
       allow(subject).to receive_messages(bump_version: nil)
-      expect(git).to receive(:pull)
+      expect(git_wrapper).to receive(:pull)
       subject.create!
     end
     
     it "stops with a warning message when a git pull fails (eg. merge errors)" do
       allow(subject).to receive_messages(bump_version: nil)
-      expect(git).to receive(:pull)
+      expect(git_wrapper).to receive(:pull)
       subject.create!
     end
     
@@ -60,7 +60,7 @@ describe EpiDeploy::Release do
     
     it "commits the new version number" do
       allow(subject).to receive_messages bump_version: 42
-      expect(git).to receive(:commit).with('Bumped to version 42')
+      expect(git_wrapper).to receive(:commit).with('Bumped to version 42')
       subject.create!
     end
     
@@ -68,13 +68,13 @@ describe EpiDeploy::Release do
       allow(subject).to receive_messages bump_version: 42
       now = Time.new 2014, 12, 1, 16, 15
       allow(Time).to receive_messages now: now 
-      expect(git).to receive(:tag).with('2014dec01-1615-abc1234-v42')
+      expect(git_wrapper).to receive(:tag).with('2014dec01-1615-abc1234-v42')
       subject.create!
     end
     
     it "pushes the new version to master to reduce the chance of version number collisions" do
       allow(subject).to receive_messages bump_version: 42
-      expect(git).to receive(:push)
+      expect(git_wrapper).to receive(:push)
       subject.create!
     end
   end

@@ -1,9 +1,19 @@
 require 'git'
 require 'aruba/api'
 require 'aruba/reporting'
+require 'aruba-doubles'
 
 RSpec.configure do |config|
   config.include Aruba::Api
+  config.include ArubaDoubles
+  
+  config.before do
+    ArubaDoubles::Double.setup
+  end
+  
+  config.after do
+    ArubaDoubles::Double.teardown
+  end
 end
 
 def setup_aruba_and_git

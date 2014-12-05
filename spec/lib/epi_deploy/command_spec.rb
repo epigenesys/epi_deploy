@@ -7,6 +7,9 @@ class MockOptions
   def initialize(options = {})
     @options = options
   end
+  def ref?
+    true
+  end
   def [](key); end
   def to_hash; @options; end
 end
@@ -17,6 +20,10 @@ class MockRelease
   def version; 5; end
   def tag; 'nice-taggy'; end
   def self.find(ref); new; end
+  
+  def tag_list
+    []
+  end
 end
 
 describe "Command" do
@@ -28,7 +35,6 @@ describe "Command" do
   let(:args)    { [] }
   
   describe "release" do
-  
     subject { EpiDeploy::Command.new options, args, MockRelease }
     let(:setup_class) { double(initial_setup_if_required: true) }
       
@@ -100,38 +106,45 @@ describe "Command" do
     end
     
     describe "optional --ref flag" do
-      
       subject { EpiDeploy::Command.new options, ['production'], MockRelease }
+      let(:options) do
+        options = Hash.new
+        allow(options).to receive_messages(ref?: true)
+        options
+      end
       
       before do
         allow(subject).to receive_messages(valid_reference?: true)
       end
       
       specify "if not supplied then the latest release is used" do
+        allow(options).to receive_messages(ref?: false)
+        subject.options = options
         expect(subject.release_class).to receive(:find).with(:latest).and_return(MockRelease.new)
         subject.deploy
       end
       
       specify "if flag supplied with no argument then list of releases displayed with choice" do
-        subject.options = { ref: nil }
+        options[:ref] = nil
+        subject.options = options
         expect(subject).to receive(:prompt_for_a_release)
         subject.deploy
       end
       
       it "can be supplied with a git reference" do
-        subject.options = { ref: 'an_exisiting_ref' }
+        options[:ref] = 'an_exisiting_ref'
+        subject.options = options
         expect(subject.release_class).to receive(:find).with('an_exisiting_ref').and_return(MockRelease.new)
         subject.deploy
       end
       
       it "errors if the reference not exist" do
-        subject.options = { ref: 'invalid_ref' }
+        options[:ref] = 'invalid_ref'
+        subject.options = options
         allow(subject).to receive_messages(valid_reference?: false)
         expect(subject).to receive_messages(fail: "You did not enter a valid Git reference. Please try again.")
         subject.deploy
       end
     end
-    
   end
-  
 end
