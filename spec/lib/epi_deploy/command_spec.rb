@@ -50,14 +50,6 @@ describe "Command" do
       subject.release(setup_class)
     end
     
-    specify "the user is notified of failure" do
-      release = MockRelease.new
-      allow(release).to receive_messages(create!: false)
-      allow(MockRelease).to receive_messages(new: release)
-      expect(subject).to receive_messages(fail: "An error occurred")
-      subject.release(setup_class)
-    end
-
     describe "optional --deploy flag" do
       
       before do

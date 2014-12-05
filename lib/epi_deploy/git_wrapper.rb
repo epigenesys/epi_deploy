@@ -19,8 +19,8 @@ module EpiDeploy
         git.commit_all message
       end
       
-      def push(options = {force: false})
-        Kernel.system "git push#{' -f' if options[:force]}"
+      def push(branch, options = {force: false})
+        git.push 'origin', branch, options
       end
       
       def add(files = nil)
@@ -52,6 +52,7 @@ module EpiDeploy
       
       def change_branch_commit(branch, commit)
         Kernel.system "git branch -f #{branch} #{commit}"
+        self.push branch, force: true
       end
       
       def tag_list(options = {limit: 5})

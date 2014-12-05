@@ -19,13 +19,10 @@ module EpiDeploy
       setup_class.initial_setup_if_required
       
       release = self.release_class.new
-      if release.create!
-        print_success "Release #{release.version} created with tag #{release.tag}"
-        environments = self.options.to_hash[:deploy]
-        self.deploy(environments) unless environments.nil?
-      else
-        fail "An error occurred."
-      end
+      release.create!
+      print_success "Release #{release.version} created with tag #{release.tag}"
+      environments = self.options.to_hash[:deploy]
+      self.deploy(environments) unless environments.nil?
     end
     
     def deploy(environments = self.args)

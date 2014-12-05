@@ -23,7 +23,7 @@ module EpiDeploy
       
         self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
         git_wrapper.tag self.tag
-        git_wrapper.push
+        git_wrapper.push 'master'
       rescue ::Git::GitExecuteError => e
         fail "A git error occurred: #{e.message}"
       end
@@ -39,7 +39,6 @@ module EpiDeploy
           git_wrapper.pull
           # Force the branch to the commit we want to deploy
           git_wrapper.change_branch_commit(environment, commit)
-          git_wrapper.push(force: true)
           run_cap_deploy_to(environment)
         rescue ::Git::GitExecuteError => e
           fail "A git error occurred: #{e.message}"
