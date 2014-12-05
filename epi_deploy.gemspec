@@ -17,6 +17,6 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
   
-  gem.add_dependency('slop')
-  gem.add_dependency('git')
+  gem.add_dependency('slop', '~> 3.6')
+  gem.add_dependency('git',  '~> 1.2')
 end
