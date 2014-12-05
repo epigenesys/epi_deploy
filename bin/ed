@@ -35,6 +35,6 @@ begin
     end
   
   end
-rescue Slop::InvalidOptionError, Slop::InvalidArgumentError => e
+rescue Slop::InvalidOptionError, Slop::InvalidArgumentError, RuntimeError => e
   fail e.message
 end
