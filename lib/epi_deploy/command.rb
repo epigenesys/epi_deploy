@@ -55,8 +55,8 @@ module EpiDeploy
 
         selected_release = nil
         while selected_release.nil? do
-          selected_release_number = STDIN.gets[/\d/] rescue nil
-          if selected_release_number.nil?
+          selected_release = STDIN.gets[/\d/] rescue nil
+          if selected_release.nil?
             return :latest
           else
             unless tag_list.key?(selected_release)
