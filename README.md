@@ -1,9 +1,13 @@
 # epiDeploy
----
 
 ## Description
 
-This gem provides a convenient interface for creating releases and deploying using Git and Capistrano.
+This gem provides a convenient interface for creating releases and deploying using Git and Capistrano. 
+
+### Branch Notes
+
+* `master` should only contain deployable code.
+* Each deployment environment has its own branch.
 
 ## Installation
 
