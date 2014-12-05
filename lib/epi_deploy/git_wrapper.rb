@@ -32,7 +32,7 @@ module EpiDeploy
       end
       
       def tag(tag_name)
-        git.add_tag(tag_name, annotate: true)
+        git.add_tag(tag_name, annotate: true, message: tag_name)
       end
       
       def get_commit(git_reference)
