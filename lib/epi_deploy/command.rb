@@ -45,23 +45,27 @@ module EpiDeploy
       
       def prompt_for_a_release
         print_notice "Select a recent release (or just press enter for latest):"
-
-        valid_releases = [:latest]
+        
+        tag_list = {}
         self.release_class.new.tag_list.each_with_index do |release, i|
           number = i + 1
-          valid_releases << number.to_s
+          tag_list[number.to_s] = release
           print_notice "#{number}: #{release}"
         end
 
         selected_release = nil
         while selected_release.nil? do
-          selected_release = (STDIN.gets[/\d/] rescue nil) || :latest
-          unless valid_releases.include?(selected_release)
-            fail "Invalid selection '#{selected_release}'. Try again..."
-            selected_release = nil
+          selected_release_number = STDIN.gets[/\d/] rescue nil
+          if selected_release_number.nil?
+            return :latest
+          else
+            unless tag_list.key?(selected_release)
+              fail "Invalid selection '#{selected_release}'. Try again..."
+              selected_release = nil
+            end
           end
         end
-        selected_release
+        tag_list[selected_release]
       end
 
       def determine_release_reference(options)
