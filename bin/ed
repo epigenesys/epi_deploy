@@ -31,10 +31,10 @@ begin
     end
     
     run do |options, args|
-      fail "Valid commands are 'release' and 'deploy'."
+      print_failure_and_abort "Valid commands are 'release' and 'deploy'."
     end
   
   end
 rescue Slop::InvalidOptionError, Slop::InvalidArgumentError, RuntimeError => e
-  fail e.message
+  print_failure_and_abort e.message
 end

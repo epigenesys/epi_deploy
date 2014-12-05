@@ -5,7 +5,7 @@ module EpiDeploy
       $stdout.puts "\x1B[32m#{message}\x1B[0m" 
     end
 
-    def fail(message)
+    def print_failure_and_abort(message)
       Kernel.abort "\x1B[31m#{message}\x1B[0m"
     end
     

@@ -37,7 +37,7 @@ module EpiDeploy
       
       def get_commit(git_reference)
         if git_reference == :latest
-          fail("There is no latest release. Create one, or specify a reference with --ref") if tag_list.empty?
+          print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if tag_list.empty?
           git_reference = tag_list.first
         end
         

@@ -30,12 +30,12 @@ module EpiDeploy
       check_environments_are_valid(environments)
       release = self.release_class.find determine_release_reference(options)
       if release.nil?
-        fail "You did not enter a valid Git reference. Please try again."
+        print_failure_and_abort "You did not enter a valid Git reference. Please try again."
       else
         if release.deploy!(environments)
           print_success "Deployment complete."
         else
-          fail "An error occurred."
+          print_failure_and_abort "An error occurred."
         end
       end
     end
@@ -60,7 +60,7 @@ module EpiDeploy
             return :latest
           else
             unless tag_list.key?(selected_release)
-              fail "Invalid selection '#{selected_release}'. Try again..."
+              print_failure_and_abort "Invalid selection '#{selected_release}'. Try again..."
               selected_release = nil
             end
           end

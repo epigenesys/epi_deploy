@@ -11,8 +11,8 @@ module EpiDeploy
     attr_accessor :tag, :commit
   
     def create!
-      return fail 'You can only create a release on the master branch. Please switch to master and try again.' unless git_wrapper.on_master?
-      return fail 'You have pending changes, please commit or stash them and try again.'  if git_wrapper.pending_changes?
+      return print_failure_and_abort 'You can only create a release on the master branch. Please switch to master and try again.' unless git_wrapper.on_master?
+      return print_failure_and_abort 'You have pending changes, please commit or stash them and try again.'  if git_wrapper.pending_changes?
       
       begin
         git_wrapper.pull
@@ -25,7 +25,7 @@ module EpiDeploy
         git_wrapper.tag self.tag
         git_wrapper.push 'master'
       rescue ::Git::GitExecuteError => e
-        fail "A git error occurred: #{e.message}"
+        print_failure_and_abort "A git error occurred: #{e.message}"
       end
     end
     
@@ -41,7 +41,7 @@ module EpiDeploy
           git_wrapper.change_branch_commit(environment, commit)
           run_cap_deploy_to(environment)
         rescue ::Git::GitExecuteError => e
-          fail "A git error occurred: #{e.message}"
+          print_failure_and_abort "A git error occurred: #{e.message}"
         end
       end
     end

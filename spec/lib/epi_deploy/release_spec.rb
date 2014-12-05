@@ -28,13 +28,13 @@ describe EpiDeploy::Release do
     describe "preconditions" do   
       it "can only be done on the master branch" do
         allow(subject).to receive_messages(git_wrapper: MockGit.new(on_master: false))
-        expect(subject).to receive(:fail).with('You can only create a release on the master branch. Please switch to master and try again.')
+        expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the master branch. Please switch to master and try again.')
         subject.create!
       end
     
       it "errors when pending changes exist" do
         allow(subject).to receive_messages(git_wrapper: MockGit.new(pending_changes: true))
-        expect(subject).to receive(:fail).with('You have pending changes, please commit or stash them and try again.')
+        expect(subject).to receive(:print_failure_and_abort).with('You have pending changes, please commit or stash them and try again.')
         subject.create!
       end
     end

@@ -134,7 +134,7 @@ describe "Command" do
         options[:ref] = 'invalid_ref'
         subject.options = options
         allow(subject).to receive_messages(valid_reference?: false)
-        expect(subject).to receive_messages(fail: "You did not enter a valid Git reference. Please try again.")
+        expect(subject).to receive_messages(print_failure_and_abort: "You did not enter a valid Git reference. Please try again.")
         subject.deploy
       end
     end
