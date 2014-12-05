@@ -52,14 +52,11 @@ module EpiDeploy
       
       def change_branch_commit(branch, commit)
         Kernel.system "git branch -f #{branch} #{commit}"
-        
-        "git for-each-ref --sort=taggerdate --format '%(refname) %(taggerdate)' refs/tags"
-        
         self.push branch, force: true, tags: true
       end
       
       def tag_list(options = {limit: 5})
-        @tag_list ||= `git tag`.split.reverse
+        @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.split.reverse
       end
    
       private
