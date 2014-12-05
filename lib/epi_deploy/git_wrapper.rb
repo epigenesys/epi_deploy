@@ -19,7 +19,7 @@ module EpiDeploy
         git.commit_all message
       end
       
-      def push(branch, options = {force: false})
+      def push(branch, options = {force: false, tags: true})
         git.push 'origin', branch, options
       end
       
@@ -52,7 +52,7 @@ module EpiDeploy
       
       def change_branch_commit(branch, commit)
         Kernel.system "git branch -f #{branch} #{commit}"
-        self.push branch, force: true
+        self.push branch, force: true, tags: true
       end
       
       def tag_list(options = {limit: 5})
