@@ -43,11 +43,11 @@ $ ed release --deploy demo:production
 Deploy the latest release to the given environment(s).
 
 ```bash
-$ ed deploy demo:production
+$ ed deploy demo production
 ```
 
 Optional flag to specify which tag, commit, or branch to deploy to the given environment(s). Shorthand -r. If the flag is provided without a reference you will be prompted to choose from the latest releases.
 
 ```bash
-$ ed deploy demo:production --ref <reference>
+$ ed deploy demo production --ref <reference>
 ```
