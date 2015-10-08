@@ -12,11 +12,11 @@ Gem::Specification.new do |gem|
   gem.summary       = "eD"
   gem.homepage      = "http://www.epigenesys.co.uk"
 
-  gem.files         = `git ls-files`.split($/) - ['config/production.rb']
+  gem.files         = `git ls-files`.split($/) - ['config/deploy/production.rb']
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
-  
+
   gem.add_dependency('slop', '~> 3.6')
   gem.add_dependency('git',  '~> 1.2')
 end
