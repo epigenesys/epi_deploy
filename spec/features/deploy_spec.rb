@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'support/aruba_helper'
 
-describe "Deploy" do
+describe "Deploy", type: :aruba do
   
   it "errors if environment doesn't exist" do
     setup_aruba_and_git
@@ -19,10 +19,10 @@ describe "Deploy" do
   
   it "deploys latest release" do
     setup_aruba_and_git
-    `git tag -a example_tag -m "For testing"`  # Create a pretend release
-    `git push &> /dev/null`
+    run_simple 'git tag -a example_tag -m "For testing"'  # Create a pretend release
+    run_simple 'git push'
     double_cmd('bundle')
-    run_ed 'deploy production'
+    run_ed 'deploy production -r example_tag'
     expect(all_output).to include('Deploying to production...')
     assert_exit_status(0)
   end

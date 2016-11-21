@@ -12,8 +12,8 @@ describe "Release" do
   
   it "deploys the release if the flag is supplied" do
     setup_aruba_and_git
-    `git tag -a example_tag -m "For testing"`  # Create a pretend release
-    `git push &> /dev/null`
+    run_simple 'git tag -a example_tag -m "For testing"'  # Create a pretend release
+    run_simple 'git push'
     double_cmd('bundle')
     run_ed 'release --deploy production'
     expect(all_output).to include('Deploying to production...')

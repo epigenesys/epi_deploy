@@ -13,7 +13,7 @@ module EpiDeploy
     end
 
     def pull
-      git.pull
+      git.pull('origin', git.current_branch)
     end
 
     def commit(message)

@@ -16,8 +16,11 @@ RSpec.configure do |config|
   end
 end
 
+def local_repo
+  File.expand_path('../../tmp/local_repo', __FILE__)
+end
+
 def setup_aruba_and_git
-  local_repo = File.expand_path('../../tmp/local_repo', __FILE__)
   @dirs = [local_repo]
 
   restore_env
@@ -38,5 +41,4 @@ def setup_aruba_and_git
   g.add_remote('origin', local_repo)
 
   `cd #{local_repo} && git push -u origin master &> /dev/null`
-
 end
