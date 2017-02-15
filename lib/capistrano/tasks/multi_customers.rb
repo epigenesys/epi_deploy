@@ -2,7 +2,6 @@ namespace :epi_deploy do
   task :symlink_customer_configs do
     on release_roles :all  do
       execute :ln, '-s', release_path.join("config/customers/customer_settings/#{fetch(:current_customer)}.yml"), release_path.join("config/customer_settings.yml")
-      execute :ln, '-s', release_path.join("config/customers/epi_cas_settings/#{fetch(:current_customer)}.yml"), release_path.join("config/epi_cas_settings.yml")
     end
   end
 end
