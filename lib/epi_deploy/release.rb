@@ -75,7 +75,19 @@ module EpiDeploy
       
       def run_cap_deploy_to(environment)
         $stdout.puts "Deploying to #{environment}... "
-        Kernel.system "bundle exec cap #{environment} deploy:migrations"
+        
+        task_to_run = if stages_extractor.multi_customer_stage?(environment)
+          "deploy_all"
+        else
+          "deploy"
+        end
+        
+        Kernel.system "bundle exec cap #{environment} #{task_to_run}"
+      end
+      
+      
+      def stages_extractor
+        @stages_extractor ||= StagesExtractor.new
       end
 
   end

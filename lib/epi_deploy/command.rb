@@ -77,18 +77,13 @@ module EpiDeploy
           :latest
         end
       end
-
-      def valid_environments
-        Dir.glob(
-          File.join(Dir.pwd, 'config/deploy/*.rb')
-        ).map do |filepath| 
-          File.basename filepath, ".rb"
-        end
-      end
-
       def check_environments_are_valid(environments)
-        invalid_environments = environments - valid_environments
+        invalid_environments = environments.reject { |environment| stages_extractor.valid_stage?(environment) }
         raise Slop::InvalidArgumentError.new("Environment '#{invalid_environments.first}' does not exist") unless invalid_environments.empty?
+      end
+      
+      def stages_extractor
+        @stages_extractor ||= StagesExtractor.new
       end
     
   end

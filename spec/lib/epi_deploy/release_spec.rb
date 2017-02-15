@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'epi_deploy/stages_extractor'
 require 'epi_deploy/release'
 
 class MockGit
@@ -25,7 +26,7 @@ describe EpiDeploy::Release do
   end
   
   describe "#create!" do
-    describe "preconditions" do   
+    describe "preconditions" do
       it "can only be done on the master branch" do
         allow(subject).to receive_messages(git_wrapper: MockGit.new(on_master: false))
         expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the master branch. Please switch to master and try again.')
@@ -80,12 +81,12 @@ describe EpiDeploy::Release do
   end
   
   describe "#deploy!" do
-    
     it "runs the capistrano deploy command for each of the environments given" do
-      expect(Kernel).to receive(:system).with('bundle exec cap a deploy:migrations')
-      expect(Kernel).to receive(:system).with('bundle exec cap b deploy:migrations')
-      expect(Kernel).to receive(:system).with('bundle exec cap c deploy:migrations')
-      subject.deploy! %w(a b c)
+      Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
+        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy')
+        expect(Kernel).to receive(:system).with('bundle exec cap production deploy_all')
+        subject.deploy! %w(demo production)
+      end
     end
     
   end

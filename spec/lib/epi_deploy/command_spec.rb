@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'epi_deploy/stages_extractor'
 require 'epi_deploy/command'
 require 'slop'
 
@@ -69,13 +70,17 @@ describe "Command" do
         subject.release(setup_class)
       end
     end
-    
   end
-  
   
   describe "deploy" do
     before { allow(Kernel).to receive(:abort) }
     subject { EpiDeploy::Command.new options, args, MockRelease }
+    
+    around do |example|
+      Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
+        example.call
+      end
+    end
     
     describe "required arguments" do
       it "errors if no deploy environment is provided" do
