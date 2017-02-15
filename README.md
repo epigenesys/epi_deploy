@@ -51,3 +51,22 @@ Optional flag to specify which tag, commit, or branch to deploy to the given env
 ```bash
 $ ed deploy demo production --ref <reference>
 ```
+
+### Deploy to multiple customers
+
+If you want to deploy to multiple customers, you can set it up as following:
+
+  1. In `config/deploy`, create one config file for the environment you want to deploy to. (e.g. `production.rb`)
+  2. In this file, include the setting for stage (`set :stage, :production`) as well as all the common settings across customers (e.g. `set :branch, 'production'`)
+  3. In `config/deploy`, create one config file with the name in following format: "stage.customer.rb", e.g. `production.epigenesys.rb`, and include the following content (remember to replace the name of the stage and customer):
+    
+        load File.expand_path('../production.rb', __FILE__)
+        
+        ... any other customer specific settings
+        
+        set :current_customer, 'epigenesys'
+        server fetch(:server), user: fetch(:user), roles: %w{web app db}
+
+  4. Include this line in `Capfile`: `require 'capistrano/epi_deploy'`
+  
+Now by doing `ed release -d production`, the latest release of code will be deploy to all customers. You can also deploy to a specific customer by doing e.g. `ed release -d production.epigenesys`
