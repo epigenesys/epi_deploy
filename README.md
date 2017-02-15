@@ -69,4 +69,6 @@ If you want to deploy to multiple customers, you can set it up as following:
 
   4. Include this line in `Capfile`: `require 'capistrano/epi_deploy'`
   
-Now by doing `ed release -d production`, the latest release of code will be deploy to all customers. You can also deploy to a specific customer by doing e.g. `ed release -d production.epigenesys`
+Now by doing `ed release -d production`, the latest release of code will be deploy to all customers. You can also deploy to a specific customer by doing e.g. `ed release -d production.epigenesys`.
+
+You can also deploy to all customers for a given environment by running e.g. `cap production deploy_all`.
