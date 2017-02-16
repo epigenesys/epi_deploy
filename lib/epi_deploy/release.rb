@@ -37,8 +37,11 @@ module EpiDeploy
       environments.each do |environment|
         begin
           git_wrapper.pull
+          
+          matches = environment.match(/\A(?<stage>\w+)(?:\.(?<customer>\w+))?\z/)
+          
           # Force the branch to the commit we want to deploy
-          git_wrapper.change_branch_commit(environment, commit)
+          git_wrapper.change_branch_commit(matches[:stage], commit)
           run_cap_deploy_to(environment)
         rescue ::Git::GitExecuteError => e
           print_failure_and_abort "A git error occurred: #{e.message}"
