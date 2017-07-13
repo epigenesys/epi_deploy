@@ -7,7 +7,7 @@ module EpiDeploy
       self.all_stages = Set.new
       
       stage_config_files.each do |stage_config_file_name|
-        matches = stage_config_file_name.match /(?<stage>\w+)(?:\.(?<customer>\w+))?\.rb/
+        matches = stage_config_file_name.match /(?<stage>[\w\-]+)(?:\.(?<customer>[\w\-]+))?\.rb/
   
         if matches[:customer]
           multi_customer_stages << matches[:stage]
