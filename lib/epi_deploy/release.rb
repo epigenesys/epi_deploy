@@ -42,7 +42,10 @@ module EpiDeploy
 
           # Force the branch to the commit we want to deploy
           git_wrapper.change_branch_commit(matches[:stage], commit)
-          run_cap_deploy_to(environment)
+          completed = run_cap_deploy_to(environment)
+          if !completed
+            print_failure_and_abort "Deployment failed - please review output before deploying again"
+          end
         rescue ::Git::GitExecuteError => e
           print_failure_and_abort "A git error occurred: #{e.message}"
         end
