@@ -8,4 +8,6 @@ group :development do
   gem "aruba", '~> 0.7.0'
   gem "aruba-doubles", '~> 1.2'
   gem 'byebug'
+
+  gem 'capistrano', '~> 3.6'
 end

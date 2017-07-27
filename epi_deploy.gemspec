@@ -6,11 +6,11 @@ require 'epi_deploy/version'
 Gem::Specification.new do |gem|
   gem.name          = "epi_deploy"
   gem.version       = EpiDeploy::VERSION
-  gem.authors       = ["Anthony Nettleship", "Shuo Chen", "Chris Hunt"]
-  gem.email         = ["a.nettleship@epigenesys.org.uk", "s.chen@epigenesys.org.uk", "c.hunt@epigenesys.org.uk"]
+  gem.authors       = ["Anthony Nettleship", "Shuo Chen", "Chris Hunt", "James Gregory"]
+  gem.email         = ["anthony.nettleship@epigenesys.org.uk", "shuo.chen@epigenesys.org.uk", "chris.hunt@epigenesys.org.uk", "james.gregory@epigenesys.org.uk"]
   gem.description   = "A gem to facilitate deployment across multiple git branches and evironments"
   gem.summary       = "eD"
-  gem.homepage      = "http://www.epigenesys.co.uk"
+  gem.homepage      = "https://www.epigenesys.org.uk"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

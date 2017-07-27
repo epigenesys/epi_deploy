@@ -31,7 +31,7 @@ def setup_aruba_and_git
   `mkdir -p #{local_repo}/config/deploy`
 
   `echo > #{local_repo}/config/initializers/.gitkeep`
-  `echo > #{local_repo}/config/deploy/production.rb`
+  `cp -r #{File.expand_path('../../../config/deploy/*.rb', __FILE__)} #{local_repo}/config/deploy/`
 
   g = Git.init(local_repo)
   g.add
