@@ -38,7 +38,7 @@ module EpiDeploy
         begin
           git_wrapper.pull
 
-          matches = environment.match(/\A(?<stage>\w+)(?:\.(?<customer>\w+))?\z/)
+          matches = environment.match(/\A(?<stage>[\w\-]+)(?:\.(?<customer>\w+))?\z/)
 
           # Force the branch to the commit we want to deploy
           git_wrapper.change_branch_commit(matches[:stage], commit)
