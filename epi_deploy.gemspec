@@ -18,5 +18,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency('slop', '~> 3.6')
-  gem.add_dependency('git',  '~> 1.2')
+  gem.add_dependency('git',  '~> 1.5')
 end
