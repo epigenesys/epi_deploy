@@ -2,7 +2,7 @@
 
 ## Description
 
-This gem provides a convenient interface for creating releases and deploying using Git and Capistrano. 
+This gem provides a convenient interface for creating releases and deploying using Git and Capistrano.
 
 ### Branch Notes
 
@@ -56,19 +56,43 @@ $ ed deploy demo production --ref <reference>
 
 If you want to deploy to multiple customers, you can set it up as following:
 
-  1. In `config/deploy`, create one config file for the environment you want to deploy to. (e.g. `production.rb`)
-  2. In this file, include the setting for stage (`set :stage, :production`) as well as all the common settings across customers (e.g. `set :branch, 'production'`)
-  3. In `config/deploy`, create one config file with the name in following format: "stage.customer.rb", e.g. `production.epigenesys.rb`, and include the following content (remember to replace the name of the stage and customer):
-    
-        load File.expand_path('../production.rb', __FILE__)
-        
-        ... any other customer specific settings
-        
-        set :current_customer, 'epigenesys'
-        server fetch(:server), user: fetch(:user), roles: %w{web app db}
+1. In `config/deploy`, create one config file for the environment you want to deploy to. (e.g. `production.rb`)
 
-  4. Include this line in `Capfile`: `require 'capistrano/epi_deploy'`
-  
-Now by doing `ed release -d production`, the latest release of code will be deploy to all customers. You can also deploy to a specific customer by doing e.g. `ed release -d production.epigenesys`.
+  * In this file, include the setting for stage:
+
+    ```
+    set :stage, :production
+    ```
+
+    Also include any common settings across customers:
+
+    ```
+    set :branch, 'production'
+    ```
+
+2. In `config/deploy`, create one config file with the name in following format: `{stage}.{customer}.rb` (e.g. `production.epigenesys.rb`)
+
+  * Include the following content (remember to replace the name of the stage and customer):
+
+    ```
+    load File.expand_path('../production.rb', __FILE__)
+    ```
+
+  * Also include any other customer specific settings:
+
+    ```
+    set :current_customer, 'epigenesys'
+    server fetch(:server), user: fetch(:user), roles: %w{web app db}
+    ```
+
+3. Include this line in `Capfile`:
+
+  ```
+  require 'capistrano/epi_deploy'
+  ```
+
+Running `ed release -d production` will now deploy the latest release of the code to all customers.
+
+You can also deploy to a specific customer by doing e.g. `ed release -d production.epigenesys`.
 
 You can also deploy to all customers for a given environment by running e.g. `cap production deploy_all`.
