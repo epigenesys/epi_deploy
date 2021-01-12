@@ -8,7 +8,7 @@ class MockGit
     @pending_changes = options[:pending_changes].nil? ? false : options[:pending_changes]
   end
   def add(files); end
-  def on_master?; @on_master; end
+  def on_master_or_main?; @on_master; end
   def pending_changes?; @pending_changes; end
   def short_commit_hash; 'abc1234'; end
   def commit(msg); end
@@ -16,6 +16,7 @@ class MockGit
   def push(opts = {}); end
   def pull; end
   def change_branch_commit(branch, commit); end
+  def current_branch; 'master'; end
 end
 
 describe EpiDeploy::Release do
@@ -29,7 +30,7 @@ describe EpiDeploy::Release do
     describe "preconditions" do
       it "can only be done on the master branch" do
         allow(subject).to receive_messages(git_wrapper: MockGit.new(on_master: false))
-        expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the master branch. Please switch to master and try again.')
+        expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the master or main branch. Please switch to master or main and try again.')
         subject.create!
       end
 
