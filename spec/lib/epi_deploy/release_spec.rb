@@ -3,12 +3,12 @@ require 'epi_deploy/stages_extractor'
 require 'epi_deploy/release'
 
 class MockGit
-  def initialize(options = {})
-    @on_master       = options[:on_master].nil?       ? true  : options[:on_master]
-    @pending_changes = options[:pending_changes].nil? ? false : options[:pending_changes]
+  def initialize(on_primary_branch: true, pending_changes: false)
+    @on_primary_branch = on_primary_branch
+    @pending_changes = pending_changes
   end
   def add(files); end
-  def on_master_or_main?; @on_master; end
+  def on_primary_branch?; @on_primary_branch; end
   def pending_changes?; @pending_changes; end
   def short_commit_hash; 'abc1234'; end
   def commit(msg); end
@@ -16,7 +16,7 @@ class MockGit
   def push(opts = {}); end
   def pull; end
   def change_branch_commit(branch, commit); end
-  def current_branch; 'master'; end
+  def current_branch; 'main'; end
 end
 
 describe EpiDeploy::Release do
@@ -28,9 +28,9 @@ describe EpiDeploy::Release do
 
   describe "#create!" do
     describe "preconditions" do
-      it "can only be done on the master branch" do
-        allow(subject).to receive_messages(git_wrapper: MockGit.new(on_master: false))
-        expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the master or main branch. Please switch to master or main and try again.')
+      it "can only be done on the primary branch" do
+        allow(subject).to receive_messages(git_wrapper: MockGit.new(on_primary_branch: false))
+        expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the main or master branch. Please switch to main or master and try again.')
         subject.create!
       end
 
@@ -41,7 +41,7 @@ describe EpiDeploy::Release do
       end
     end
 
-    it "performs a git pull of master to ensure code is the latest" do
+    it "performs a git pull to ensure code is the latest" do
       allow(subject).to receive_messages(bump_version: nil)
       expect(git_wrapper).to receive(:pull)
       subject.create!
@@ -74,7 +74,7 @@ describe EpiDeploy::Release do
       subject.create!
     end
 
-    it "pushes the new version to master to reduce the chance of version number collisions" do
+    it "pushes the new version to primary branch to reduce the chance of version number collisions" do
       allow(subject).to receive_messages bump_version: 42
       expect(git_wrapper).to receive(:push)
       subject.create!

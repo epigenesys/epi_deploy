@@ -4,8 +4,8 @@ require_relative './helpers'
 module EpiDeploy
   class GitWrapper
     include EpiDeploy::Helpers
-    def on_master_or_main?
-      current_branch.in? ["master", "main"]
+    def on_primary_branch?
+      ["main", "master"].include? current_branch 
     end
 
     def pending_changes?
@@ -65,9 +65,10 @@ module EpiDeploy
     end
 
     private
-      def git
-        @git ||= ::Git.open(Dir.pwd)
-      end
+
+    def git
+      @git ||= ::Git.open(Dir.pwd)
+    end
 
   end
 end

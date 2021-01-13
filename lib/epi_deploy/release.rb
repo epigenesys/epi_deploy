@@ -11,7 +11,7 @@ module EpiDeploy
     attr_accessor :tag, :commit
 
     def create!
-      return print_failure_and_abort 'You can only create a release on the master or main branch. Please switch to master or main and try again.' unless git_wrapper.on_master_or_main?
+      return print_failure_and_abort 'You can only create a release on the main or master branch. Please switch to main or master and try again.' unless git_wrapper.on_primary_branch?
       return print_failure_and_abort 'You have pending changes, please commit or stash them and try again.'  if git_wrapper.pending_changes?
 
       begin
