@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'support/aruba_helper'
 
+# TODO: These tests are failing when using the aruba git setup
+# expected that command "git push" has exit status of "0", but has "128".
 describe "Deploy", type: :aruba do
   
   it "errors if environment doesn't exist" do
