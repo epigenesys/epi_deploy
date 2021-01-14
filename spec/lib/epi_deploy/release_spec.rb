@@ -23,7 +23,7 @@ describe EpiDeploy::Release do
 
   let(:git_wrapper) { MockGit.new }
   before do
-    allow(subject).to receive_messages(git_wrapper: git_wrapper, app_version: double(bump!: 42, version_file_path: ''))
+    allow(subject).to receive_messages(reference: 'test', git_wrapper: git_wrapper, app_version: double(bump!: 42, version_file_path: ''))
   end
 
   describe "#create!" do
@@ -92,13 +92,17 @@ describe EpiDeploy::Release do
   describe "#deploy!" do
     it "runs the capistrano deploy command for each of the environments given" do
       Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
-        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy').and_return(true)
-        expect(Kernel).to receive(:system).with('bundle exec cap production deploy_all').and_return(true)
+        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with('bundle exec cap production deploy_all target=test').and_return(true)
 
-        expect { subject.deploy! %w(demo production) }.to_not raise_error
+        expect do
+          # Suppress output from epiDeploy
+          allow_any_instance_of(IO).to receive(:puts)
+
+          subject.deploy! %w(demo production)
+        end.to_not raise_error
       end
     end
-
   end
 
 end
