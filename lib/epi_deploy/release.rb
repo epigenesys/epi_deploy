@@ -8,7 +8,7 @@ module EpiDeploy
 
     MONTHS = %w(jan feb mar apr may jun jul aug sep oct nov dec)
 
-    attr_accessor :tag, :commit
+    attr_accessor :reference, :tag, :commit
 
     def create!
       return print_failure_and_abort 'You can only create a release on the main or master branch. Please switch to main or master and try again.' unless git_wrapper.on_primary_branch?
@@ -63,8 +63,9 @@ module EpiDeploy
     def self.find(reference)
       release = self.new
       commit = release.git_wrapper.get_commit(reference)
-      return nil if commit.nil?
+      print_failure_and_abort("Cannot find commit for reference '#{reference}'") if commit.nil?
       release.commit = commit
+      release.reference = reference
       release
     end
 
@@ -89,9 +90,8 @@ module EpiDeploy
           "deploy"
         end
 
-        Kernel.system "bundle exec cap #{environment} #{task_to_run}"
+        Kernel.system "bundle exec cap #{environment} #{task_to_run} target=#{reference}"
       end
-
 
       def stages_extractor
         @stages_extractor ||= StagesExtractor.new
