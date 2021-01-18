@@ -6,7 +6,6 @@ gemspec
 group :development do
   gem "rspec", '~> 3.1'
   gem "aruba", '~> 1.0.0'
-  gem "aruba-doubles", '~> 1.2'
   gem 'byebug'
 
   gem 'capistrano', '~> 3.6'
