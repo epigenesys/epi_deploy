@@ -4,8 +4,8 @@ require_relative './helpers'
 module EpiDeploy
   class GitWrapper
     include EpiDeploy::Helpers
-    def on_master?
-      git.current_branch == "master"
+    def on_primary_branch?
+      ["main", "master"].include? current_branch 
     end
 
     def pending_changes?
@@ -13,7 +13,7 @@ module EpiDeploy
     end
 
     def pull
-      git.pull('origin', git.current_branch)
+      git.pull('origin', current_branch)
     end
 
     def commit(message)
@@ -60,10 +60,15 @@ module EpiDeploy
       @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.gsub("'", '').split.reverse
     end
 
+    def current_branch
+      git.current_branch
+    end
+
     private
-      def git
-        @git ||= ::Git.open(Dir.pwd)
-      end
+
+    def git
+      @git ||= ::Git.open(Dir.pwd)
+    end
 
   end
 end

@@ -6,7 +6,7 @@ This gem provides a convenient interface for creating releases and deploying usi
 
 ### Branch Notes
 
-* `master` should only contain deployable code.
+* `main` / `master` should only contain deployable code.
 * Each deployment environment has its own branch.
 * Remote repository is assumed to be named 'origin'
 
@@ -28,7 +28,7 @@ No initial setup is required as prerequisites are checked automatically before e
 
 ### Commands
 
-This command will bump the version in config/initializers/version.rb, create a Git tag in the format YYYYmonDD-HHMM-&lt;short_commit_hash&gt;-v&lt;version&gt; and push it to the remote repository. This can only be done on the **master** branch.
+This command will bump the version in config/initializers/version.rb, create a Git tag in the format YYYYmonDD-HHMM-&lt;short_commit_hash&gt;-v&lt;version&gt; and push it to the remote repository. This can only be done on the **main** or **master** branch.
 
 ```bash
 $ ed release

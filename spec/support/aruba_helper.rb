@@ -1,6 +1,5 @@
 require 'git'
 require 'aruba/api'
-require 'aruba/reporting'
 require 'aruba-doubles'
 
 RSpec.configure do |config|
@@ -17,15 +16,16 @@ RSpec.configure do |config|
 end
 
 def local_repo
-  File.expand_path('../../tmp/local_repo', __FILE__)
+  File.expand_path("../../../#{Aruba.config.working_directory}", __FILE__)
 end
 
 def setup_aruba_and_git
   @dirs = [local_repo]
 
-  restore_env
+  setup_aruba
   `rm -rf #{local_repo}`
   `mkdir -p #{local_repo}`
+  `cp #{File.expand_path('../../../Gemfile*', __FILE__)} #{local_repo}`
 
   `mkdir -p #{local_repo}/config/initializers`
   `mkdir -p #{local_repo}/config/deploy`
@@ -40,5 +40,5 @@ def setup_aruba_and_git
   # Set the remote repo to the local, works the same as an actual remote
   g.add_remote('origin', local_repo)
 
-  `cd #{local_repo} && git push -u origin master &> /dev/null`
+  `cd #{local_repo} && git push --quiet -u origin $(git symbolic-ref --short HEAD) &> /dev/null`
 end

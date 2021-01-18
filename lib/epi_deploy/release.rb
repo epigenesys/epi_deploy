@@ -11,7 +11,7 @@ module EpiDeploy
     attr_accessor :tag, :commit
 
     def create!
-      return print_failure_and_abort 'You can only create a release on the master branch. Please switch to master and try again.' unless git_wrapper.on_master?
+      return print_failure_and_abort 'You can only create a release on the main or master branch. Please switch to main or master and try again.' unless git_wrapper.on_primary_branch?
       return print_failure_and_abort 'You have pending changes, please commit or stash them and try again.'  if git_wrapper.pending_changes?
 
       begin
@@ -23,7 +23,7 @@ module EpiDeploy
 
         self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
         git_wrapper.tag self.tag
-        git_wrapper.push 'master'
+        git_wrapper.push git_wrapper.current_branch
       rescue ::Git::GitExecuteError => e
         print_failure_and_abort "A git error occurred: #{e.message}"
       end
