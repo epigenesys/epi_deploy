@@ -69,6 +69,7 @@ module EpiDeploy
     end
 
     private
+
       def app_version(app_version_class = EpiDeploy::AppVersion)
         @app_version ||= app_version_class.new
       end
