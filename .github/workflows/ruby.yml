@@ -28,5 +28,7 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: Set up Git
+      run: git config --global user.name "GitHub CI"
     - name: Run tests
       run: bundle exec rspec
