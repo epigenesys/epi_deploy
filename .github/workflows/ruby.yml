@@ -30,5 +30,6 @@ jobs:
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Set up Git
       run: git config --global user.name "GitHub CI"
+      run: git config --global user.email "github-ci@epigenesys.org.uk"
     - name: Run tests
       run: bundle exec rspec
