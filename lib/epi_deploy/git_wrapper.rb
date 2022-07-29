@@ -1,5 +1,6 @@
 require 'git'
 require_relative './helpers'
+require 'byebug'
 
 module EpiDeploy
   class GitWrapper
@@ -9,7 +10,10 @@ module EpiDeploy
     end
 
     def pending_changes?
-      git.status.changed.any?
+      # replaced the git library with a system call
+      # due to it iterating all project files when
+      # doing a git status.
+      !system("git diff --quiet --exit-code")
     end
 
     def pull
