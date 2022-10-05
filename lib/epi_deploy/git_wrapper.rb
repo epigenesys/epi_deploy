@@ -55,9 +55,23 @@ module EpiDeploy
       end
     end
 
-    def change_branch_commit(branch, commit)
-      Kernel.system "git branch -f #{branch} #{commit}"
-      self.push branch, force: true, tags: true
+    def update_stage_tag_or_branch(stage, commit)
+      if EpiDeploy.use_tags_for_deploy
+        update_tag_commit(stage, commit)
+      else
+        update_branch_commit(stage, commit)
+      end
+    end
+
+    def update_branch_commit(stage, commit)
+      Kernel.system "git branch -f #{stage} #{commit}"
+      self.push stage, force: true, tags: true
+    end
+
+    def update_tag_commit(stage, commit)
+      Kernel.system "git push origin :refs/tags/#{stage}"
+      git.add_tag(stage, commit, annotate: true, f: true)
+      Kernel.system "git push origin --tags"
     end
 
     def tag_list(options = {limit: 5})

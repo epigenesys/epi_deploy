@@ -3,6 +3,11 @@
 require 'slop'
 require_relative '../lib/epi_deploy/command'
 
+config_path = File.join(Dir.pwd, 'config/epi_deploy.rb')
+if File.exist?(config_path)
+  require config_path
+end
+
 begin
   opts = Slop.parse strict: true do
 
