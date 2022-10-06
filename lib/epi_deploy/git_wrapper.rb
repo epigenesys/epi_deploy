@@ -70,11 +70,11 @@ module EpiDeploy
 
     def update_tag_commit(stage, commit)
       Kernel.system "git push origin :refs/tags/#{stage}"
-      git.add_tag(stage, commit, annotate: true, f: true)
+      git.add_tag(stage, commit, annotate: true, f: true, message: stage)
       Kernel.system "git push origin --tags"
     end
 
-    def tag_list(options = {limit: 5})
+    def tag_list
       @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.gsub("'", '').split.reverse
     end
 

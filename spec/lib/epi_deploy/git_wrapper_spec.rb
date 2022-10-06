@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'epi_deploy/config'
 require 'epi_deploy/git_wrapper'
 
 describe EpiDeploy::GitWrapper do
@@ -7,6 +8,30 @@ describe EpiDeploy::GitWrapper do
   let(:current_branch) { 'main' }
   before(:each) do
     allow(subject).to receive(:git).and_return(mocked_git)
+  end
+
+  describe '#update_stage_tag_or_branch' do
+
+    context 'when use_tags_for_deploy is set to true' do
+      before :each do
+        EpiDeploy.use_tags_for_deploy = true
+      end
+
+      specify 'it calls update tag commit' do
+        expect(subject).to receive(:update_tag_commit)
+
+        subject.update_stage_tag_or_branch('demo', '123')
+      end
+    end
+
+    context 'when use_tags_for_deploy is set to false' do
+
+      specify 'it calls update branch commit' do
+        expect(subject).to receive(:update_branch_commit)
+
+        subject.update_stage_tag_or_branch('demo', '123')
+      end
+    end
   end
 
   describe '#on_primary_branch?' do

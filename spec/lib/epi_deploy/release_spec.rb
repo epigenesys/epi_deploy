@@ -15,7 +15,7 @@ class MockGit
   def tag(name); end
   def push(opts = {}); end
   def pull; end
-  def change_branch_commit(branch, commit); end
+  def update_stage_tag_or_branch(branch, commit); end
   def current_branch; 'main'; end
 end
 
