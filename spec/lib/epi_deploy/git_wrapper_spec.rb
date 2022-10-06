@@ -4,7 +4,7 @@ require 'epi_deploy/git_wrapper'
 
 describe EpiDeploy::GitWrapper do
 
-  let(:mocked_git) { double(:git, current_branch: current_branch) }
+  let(:mocked_git) { double(:git, current_branch: current_branch, add_tag: true, push: true) }
   let(:current_branch) { 'main' }
   before(:each) do
     allow(subject).to receive(:git).and_return(mocked_git)
@@ -18,6 +18,7 @@ describe EpiDeploy::GitWrapper do
       end
 
       specify 'it calls update tag commit' do
+        allow(Kernel).to receive(:system).and_return(true)
         expect(subject).to receive(:update_tag_commit)
 
         subject.update_stage_tag_or_branch('demo', '123')
@@ -25,8 +26,12 @@ describe EpiDeploy::GitWrapper do
     end
 
     context 'when use_tags_for_deploy is set to false' do
+      before :each do
+        EpiDeploy.use_tags_for_deploy = false
+      end
 
       specify 'it calls update branch commit' do
+        allow(Kernel).to receive(:system).and_return(true)
         expect(subject).to receive(:update_branch_commit)
 
         subject.update_stage_tag_or_branch('demo', '123')
