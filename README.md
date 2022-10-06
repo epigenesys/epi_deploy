@@ -96,3 +96,15 @@ Running `ed release -d production` will now deploy the latest release of the cod
 You can also deploy to a specific customer by doing e.g. `ed release -d production.epigenesys`.
 
 You can also deploy to all customers for a given environment by running e.g. `cap production deploy_all`.
+
+# Moving to tags for stages
+
+Using branches for stages, i.e. demo and production branches, can clutter up your branches screen. This can be particularly awkward when running CI and keeping track of multiple active branches. To resolve this you can optionally configure epi_deploy to use tags for this instead of branches.
+
+1. Update to epi_deploy 2.2.0 or greater.
+2. Add config/epi_deploy.rb to your application.
+3. Add `EpiDeploy.use_tags_for_deploy = true` to the newly created config file.
+4. Delete your stage branches on gitlab (likely `production`, `demo`, `qa`).
+5. Push your changes and deploy to a demo site to test it is working correctly.
+
+Note: In the future we intend to change this configuration option to default to true.
