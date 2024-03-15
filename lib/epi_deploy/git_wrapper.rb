@@ -1,6 +1,5 @@
 require 'git'
 require_relative './helpers'
-require 'byebug'
 
 module EpiDeploy
   class GitWrapper
