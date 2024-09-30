@@ -60,6 +60,17 @@ module EpiDeploy
       Kernel.system "git push origin --tags"
     end
 
+    def delete_branches(*stages, delete_remote: true)
+      stages.each do |stage|
+        git.push('origin', "refs/heads/#{stage}", delete: true)
+        if local_branches.has_key? stage
+          branch_object = local_branches[stage]
+          branch_object.delete
+          local_branches.delete(stage)
+        end
+      end
+    end
+
     def tag_list
       @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.gsub("'", '').split.reverse
     end
@@ -72,6 +83,12 @@ module EpiDeploy
 
     def git
       @git ||= ::Git.open(Dir.pwd)
+    end
+
+    def local_branches
+      @branches ||= git.branches.local.map do |branch|
+        [branch.name, branch]
+      end.compact.to_h
     end
 
   end

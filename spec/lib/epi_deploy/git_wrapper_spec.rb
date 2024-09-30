@@ -52,4 +52,69 @@ describe EpiDeploy::GitWrapper do
     end
   end
 
+  describe '#delete_branches' do
+    let(:stages) { ['production', 'demo'] }
+    let(:local_branches) { [] }
+
+    before do
+      allow(subject).to receive(:local_branches).and_return(local_branches)
+    end
+
+    context 'if all the deployment stages exist as local branches' do
+      let(:production_branch) { double('production branch') }
+      let(:demo_branch) { double('demo branch') }
+      let(:local_branches) {
+        {
+          'production' => production_branch,
+          'demo' => demo_branch,
+        }
+      }
+
+      specify 'it deletes each stage branch from the remote' do
+        allow(production_branch).to receive(:delete)
+        allow(demo_branch).to receive(:delete)
+
+        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', delete: true)
+        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/demo', delete: true)
+
+        subject.delete_branches(*stages)
+      end
+
+      specify 'it deletes each branch locally' do
+        expect(local_branches).to receive(:[]).with('production').and_call_original
+        expect(local_branches).to receive(:[]).with('demo').and_call_original
+        expect(production_branch).to receive(:delete)
+        expect(demo_branch).to receive(:delete)
+
+        subject.delete_branches(*stages)
+      end
+    end
+
+    context 'if not all the deployment stages exist as local branches' do
+      let(:production_branch) { double('production branch') }
+      let(:local_branches) {
+        {
+          'production' => production_branch,
+        }
+      }
+
+      specify 'it deletes each stage branch from the remote' do
+        allow(production_branch).to receive(:delete)
+
+        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', delete: true)
+        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/demo', delete: true)
+
+        subject.delete_branches(*stages)
+      end
+
+      specify 'it deletes only the branches that exist locally' do
+        expect(local_branches).to receive(:[]).with('production').and_call_original
+        expect(local_branches).to_not receive(:[]).with('demo')
+        expect(production_branch).to receive(:delete)
+
+        subject.delete_branches(*stages)
+      end
+    end
+  end
+
 end
