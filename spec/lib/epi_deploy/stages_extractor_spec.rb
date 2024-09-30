@@ -36,7 +36,23 @@ describe EpiDeploy::StagesExtractor do
     specify "a stage without a config file is not valid" do
       expect(subject.valid_stage?('qa')).to be false
     end
-    
   end
-  
+
+  describe '#environments' do
+    specify 'it returns a list of environments' do
+      expect(subject.environments).to match_array ['production', 'demo']
+    end
+  end
+
+  describe '#all_stages' do
+    specify 'it returns of all deployment stages' do
+      expect(subject.all_stages).to match_array ['production.epigenesys', 'production.genesys', 'demo']
+    end
+  end
+
+  describe '#multi_customer_stages' do
+    specify 'it returns only stages that have multiple customers for the same environment' do
+      expect(subject.all_stages).to match_array ['production.epigenesys', 'production.genesys', 'demo']
+    end
+  end
 end
