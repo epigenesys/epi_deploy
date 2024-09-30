@@ -77,7 +77,7 @@ describe EpiDeploy::GitWrapper do
         expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', delete: true)
         expect(mocked_git).to receive(:push).with('origin', 'refs/heads/demo', delete: true)
 
-        subject.delete_branches(*branches)
+        subject.delete_branches(branches)
       end
 
       specify 'it deletes each branch locally' do
@@ -86,7 +86,7 @@ describe EpiDeploy::GitWrapper do
         expect(production_branch).to receive(:delete)
         expect(demo_branch).to receive(:delete)
 
-        subject.delete_branches(*branches)
+        subject.delete_branches(branches)
       end
     end
 
@@ -104,7 +104,7 @@ describe EpiDeploy::GitWrapper do
         expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', delete: true)
         expect(mocked_git).to receive(:push).with('origin', 'refs/heads/demo', delete: true)
 
-        subject.delete_branches(*branches)
+        subject.delete_branches(branches)
       end
 
       specify 'it deletes only the branches that exist locally' do
@@ -112,7 +112,7 @@ describe EpiDeploy::GitWrapper do
         expect(local_branches).to_not receive(:[]).with('demo')
         expect(production_branch).to receive(:delete)
 
-        subject.delete_branches(*branches)
+        subject.delete_branches(branches)
       end
     end
   end

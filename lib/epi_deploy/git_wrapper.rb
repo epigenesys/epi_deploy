@@ -60,13 +60,13 @@ module EpiDeploy
       Kernel.system "git push origin --tags"
     end
 
-    def delete_branches(*branch, delete_remote: true)
-      branch.each do |stage|
-        git.push('origin', "refs/heads/#{stage}", delete: true)
-        if local_branches.has_key? stage
-          branch_object = local_branches[stage]
+    def delete_branches(branches)
+      branches.each do |branch|
+        git.push('origin', "refs/heads/#{branch}", delete: true)
+        if local_branches.has_key? branch
+          branch_object = local_branches[branch]
           branch_object.delete
-          local_branches.delete(stage)
+          local_branches.delete(branch)
         end
       end
     end
