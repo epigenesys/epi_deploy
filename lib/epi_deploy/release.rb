@@ -41,7 +41,7 @@ module EpiDeploy
           matches = environment.match(/\A(?<stage>[\w\-]+)(?:\.(?<customer>\w+))?\z/)
           
           # Force the tag/branch to the commit we want to deploy
-          git_wrapper.update_stage_tag_or_branch(matches[:stage], commit)
+          git_wrapper.update_tag_commit(matches[:stage], commit)
 
           completed = run_cap_deploy_to(environment)
           if !completed
