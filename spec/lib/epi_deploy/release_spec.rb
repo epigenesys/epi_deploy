@@ -15,8 +15,8 @@ class MockGit
   def tag(name); end
   def push(opts = {}); end
   def pull; end
-  def update_stage_tag_or_branch(branch, commit); end
   def current_branch; 'main'; end
+  def update_tag_commit(stage, commit); end
 end
 
 describe EpiDeploy::Release do
@@ -102,6 +102,13 @@ describe EpiDeploy::Release do
           subject.deploy! %w(demo production)
         end.to_not raise_error
       end
+    end
+
+    it 'updates the tag commit for the wrapper' do
+      allow(Kernel).to receive(:system).with('bundle exec cap production deploy target=test').and_return(true)
+      expect(git_wrapper).to receive(:update_tag_commit).with('production', nil)
+
+      subject.deploy! ['production']
     end
   end
 
