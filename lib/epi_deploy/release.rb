@@ -38,6 +38,9 @@ module EpiDeploy
         begin
           git_wrapper.pull
 
+          # Remove legacy environment branches in the local repo and remotely
+          git_wrapper.delete_branches(stages_extractor.environments)
+
           matches = StagesExtractor.match_with(environment)
           git_wrapper.update_tag_commit(matches[:stage], commit)
 

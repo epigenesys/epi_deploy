@@ -17,6 +17,7 @@ class MockGit
   def pull; end
   def current_branch; 'main'; end
   def update_tag_commit(stage, commit); end
+  def delete_branches(branches); end
 end
 
 describe EpiDeploy::Release do
@@ -90,23 +91,36 @@ describe EpiDeploy::Release do
   end
 
   describe "#deploy!" do
-    it "runs the capistrano deploy command for each of the environments given" do
+    before do
+      # Suppress output from epiDeploy
+      allow_any_instance_of(IO).to receive(:puts)
+    end
+
+    around do |example|
       Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
-        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
-        expect(Kernel).to receive(:system).with('bundle exec cap production deploy_all target=test').and_return(true)
-
-        expect do
-          # Suppress output from epiDeploy
-          allow_any_instance_of(IO).to receive(:puts)
-
-          subject.deploy! %w(demo production)
-        end.to_not raise_error
+        example.run
       end
     end
 
+    it "runs the capistrano deploy command for each of the environments given" do
+      expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
+      expect(Kernel).to receive(:system).with('bundle exec cap production deploy_all target=test').and_return(true)
+
+      expect do
+        subject.deploy! %w(demo production)
+      end.to_not raise_error
+    end
+
     it 'updates the tag commit for the wrapper' do
-      allow(Kernel).to receive(:system).with('bundle exec cap production deploy target=test').and_return(true)
+      allow(Kernel).to receive(:system).with('bundle exec cap production deploy_all target=test').and_return(true)
       expect(git_wrapper).to receive(:update_tag_commit).with('production', nil)
+
+      subject.deploy! ['production']
+    end
+
+    it 'deletes branches for all deployment environments' do
+      allow(Kernel).to receive(:system).with('bundle exec cap production deploy_all target=test').and_return(true)
+      expect(git_wrapper).to receive(:delete_branches).with(a_collection_containing_exactly('production', 'demo'))
 
       subject.deploy! ['production']
     end
