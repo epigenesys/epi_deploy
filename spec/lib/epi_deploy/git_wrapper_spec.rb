@@ -10,12 +10,13 @@ describe EpiDeploy::GitWrapper do
     allow(subject).to receive(:git).and_return(mocked_git)
   end
 
-  describe '#update_tag_commit' do
+  describe '#create_or_update_tag' do
     it 'adds a new tag for the stage to the commit' do
-      allow(Kernel).to receive(:system).and_return(true)
+      expect(mocked_git).to receive(:push).with('origin', 'refs/tags/production', delete: true)
       expect(mocked_git).to receive(:add_tag).with('production', 'main', any_args)
+      expect(mocked_git).to receive(:push).with('origin', 'production')
 
-      subject.update_tag_commit 'production', 'main'
+      subject.create_or_update_tag 'production', 'main'
     end
   end
 

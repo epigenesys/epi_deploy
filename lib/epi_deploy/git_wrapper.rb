@@ -54,10 +54,10 @@ module EpiDeploy
       end
     end
 
-    def update_tag_commit(stage, commit)
-      Kernel.system "git push origin :refs/tags/#{stage}"
-      git.add_tag(stage, commit, annotate: true, f: true, message: stage)
-      Kernel.system "git push origin --tags"
+    def create_or_update_tag(name, commit)
+      git.push('origin', "refs/tags/#{name}", delete: true)
+      git.add_tag(name, commit, annotate: true, f: true, message: name)
+      git.push('origin', name)
     end
 
     def delete_branches(branches)

@@ -42,7 +42,7 @@ module EpiDeploy
           git_wrapper.delete_branches(stages_extractor.environments)
 
           matches = StagesExtractor.match_with(environment)
-          git_wrapper.update_tag_commit(matches[:stage], commit)
+          git_wrapper.create_or_update_tag(matches[:stage], commit)
 
           completed = run_cap_deploy_to(environment)
           if !completed
