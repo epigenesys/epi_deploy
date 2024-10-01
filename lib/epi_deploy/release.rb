@@ -33,20 +33,24 @@ module EpiDeploy
       app_version.version
     end
 
-    def deploy!(environments)
-      environments.each do |environment|
-        begin
-          git_wrapper.pull
+    def deploy!(stages_or_environments)
+      begin
+        git_wrapper.pull
 
-          # Remove legacy environment branches in the local repo and remotely
-          git_wrapper.delete_branches(stages_extractor.environments)
+        # Remove legacy environment branches in the local repo and remotely
+        print_notice 'Removing any legacy deployment branches'
+        git_wrapper.delete_branches(stages_extractor.environments)
 
-          matches = StagesExtractor.match_with(environment)
-          git_wrapper.create_or_update_tag(matches[:stage], commit)
+        stages_or_environments.each do |stage_or_environment|
+          stages_extractor.stages_for_stage_or_environment(stage_or_environment).each do |stage|
+            tag_name = tag_name_for_stage(stage)
+            git_wrapper.create_or_update_tag(tag_name, commit)
+            print_success "Created deployment tag #{tag_name} on commit #{commit}"
 
-          completed = run_cap_deploy_to(environment)
-          if !completed
-            print_failure_and_abort "Deployment failed - please review output before deploying again"
+            completed = run_cap_deploy_to(stage)
+            if !completed
+              print_failure_and_abort "Deployment failed - please review output before deploying again"
+            end
           end
         rescue ::Git::GitExecuteError => e
           print_failure_and_abort "A git error occurred: #{e.message}"
@@ -97,6 +101,11 @@ module EpiDeploy
 
       def stages_extractor
         @stages_extractor ||= StagesExtractor.new
+      end
+
+      def tag_name_for_stage(stage)
+        timestamp = Time.now.strftime('%Y_%m_%d-%H_%M_%S')
+        "#{stage}-#{timestamp}"
       end
 
   end
