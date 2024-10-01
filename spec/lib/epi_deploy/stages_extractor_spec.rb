@@ -56,10 +56,17 @@ describe EpiDeploy::StagesExtractor do
     end
   end
 
-  describe '#stages_for_environment' do
-    specify 'it returns the deployable stages for an environment' do
-      expect(subject.stages_for_environment('production')).to match_array ['production.epigenesys', 'production.genesys']
-      expect(subject.stages_for_environment('demo')).to match_array ['demo']
+  describe '#stages_for_stage_or_environment' do
+    specify 'it returns the deployable stages for a multi-customer environment' do
+      expect(subject.stages_for_stage_or_environment('production')).to match_array ['production.epigenesys', 'production.genesys']
+    end
+
+    specify 'it returns the deployment stage itself for a single customer environment' do
+      expect(subject.stages_for_stage_or_environment('demo')).to match_array ['demo']
+    end
+
+    specify 'it returns the deployment stage for a fully qualified stage in a multi-customer environment' do
+      expect(subject.stages_for_stage_or_environment('production.epigenesys')).to match_array ['production.epigenesys']
     end
   end
 end

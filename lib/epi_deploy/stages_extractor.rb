@@ -41,8 +41,16 @@ module EpiDeploy
       all_stages.include?(stage) || multi_customer_stage?(stage)
     end
 
-    def stages_for_environment(environment)
-      @environment_to_stages[environment] || Set.new
+    def stages_for_stage_or_environment(stage_or_environment)
+      if @environment_to_stages.has_key? stage_or_environment
+        # Environment
+        @environment_to_stages[stage_or_environment]
+      elsif self.all_stages.include? stage_or_environment
+        # Stage
+        [stage_or_environment]
+      else
+        []
+      end
     end
 
     def environments
