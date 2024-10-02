@@ -86,7 +86,7 @@ module EpiDeploy
       `git tag --points-at #{object}`.split()
     end
 
-    def most_recent_commit(object)
+    def most_recent_commit
       git.log(1).first
     end
 
