@@ -15,6 +15,19 @@ module EpiDeploy
       begin
         git_wrapper.pull
 
+        if EpiDeploy.use_timestamped_deploy_tags
+          deploy_with_timestamped_tags(stages_or_environments)
+        else
+          deploy_with_environment_branches(stages_or_environments)
+        end
+      rescue ::Git::GitExecuteError => e
+        print_failure_and_abort "A git error occurred: #{e.message}"
+      end
+    end
+
+    private
+
+      def deploy_with_timestamped_tags(stages_or_environments)
         # Remove legacy environment branches in the local repo and remotely
         print_notice 'Removing any legacy deployment branches'
         git_wrapper.delete_branches(stages_extractor.environments)
@@ -32,12 +45,26 @@ module EpiDeploy
             end
           end
         end
-      rescue ::Git::GitExecuteError => e
-        print_failure_and_abort "A git error occurred: #{e.message}"
       end
-    end
 
-    private
+      def deploy_with_environment_branches(stages_or_environments)
+        stages_or_environments.each do |stage_or_environment|
+          begin
+            git_wrapper.pull
+
+            matches = StagesExtractor.match_with(stage_or_environment)
+            # Force the tag/branch to the commit we want to deploy
+            git_wrapper.create_or_update_branch(matches[:stage], @release.commit)
+
+            completed = run_cap_deploy_to(stage_or_environment)
+            if !completed
+              print_failure_and_abort "Deployment failed - please review output before deploying again"
+            end
+          rescue ::Git::GitExecuteError => e
+            print_failure_and_abort "A git error occurred: #{e.message}"
+          end
+        end
+      end
 
       def git_wrapper
         @git_wrapper ||= GitWrapper.new

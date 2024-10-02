@@ -57,8 +57,8 @@ module EpiDeploy
       @environment_to_stages.keys
     end
 
-    def self.match_with(environment)
-      environment.match(STAGE_REGEX)
+    def self.match_with(stage_or_environment)
+      stage_or_environment.match(STAGE_REGEX)
     end
 
     private
