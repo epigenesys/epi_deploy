@@ -82,6 +82,10 @@ module EpiDeploy
       git.current_branch
     end
 
+    def tags_for_object(object)
+      `git tag --points-at #{object}`.split()
+    end
+
     private
 
     def git

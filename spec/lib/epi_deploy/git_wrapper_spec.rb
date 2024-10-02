@@ -122,4 +122,14 @@ describe EpiDeploy::GitWrapper do
     end
   end
 
+  describe '#tags_for_object' do
+    before do
+      allow(Kernel).to receive(:`).with('git tags --points-at HEAD').and_return("test1\ntest2\n")
+    end
+
+    it 'returns a list of tags that point at a given object' do
+      expect(subject.tags_for_object('HEAD')).to match_array ['test1', 'test2']
+    end
+  end
+
 end
