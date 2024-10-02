@@ -94,7 +94,7 @@ describe EpiDeploy::Release do
 
   describe "#deploy!" do
     before do
-      allow_any_instance_of(IO).to receive(:puts)
+      allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_notice: nil, print_success: nil, print_failure_and_abort: nil)
     end
 
     around do |example|

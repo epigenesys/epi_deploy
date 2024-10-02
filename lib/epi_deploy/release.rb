@@ -88,7 +88,7 @@ module EpiDeploy
       end
 
       def run_cap_deploy_to(environment)
-        $stdout.puts "Deploying to #{environment}... "
+        print_notice "Deploying to #{environment}... "
 
         task_to_run = if stages_extractor.multi_customer_stage?(environment)
           "deploy_all"
