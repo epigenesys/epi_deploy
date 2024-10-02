@@ -17,13 +17,18 @@ module EpiDeploy
       begin
         git_wrapper.pull
 
-        new_version = app_version.bump!
-        git_wrapper.add(app_version.version_file_path)
-        git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
+        if git_wrapper.most_recent_commit.message.start_with? 'Bumped to version'
+          false
+        else
+          new_version = app_version.bump!
+          git_wrapper.add(app_version.version_file_path)
+          git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
 
-        self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
-        git_wrapper.create_or_update_tag(self.tag, push: false)
-        git_wrapper.push(git_wrapper.current_branch, tags: true)
+          self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
+          git_wrapper.create_or_update_tag(self.tag, push: false)
+          git_wrapper.push(git_wrapper.current_branch, tags: true)
+          true
+        end
       rescue ::Git::GitExecuteError => e
         print_failure_and_abort "A git error occurred: #{e.message}"
       end

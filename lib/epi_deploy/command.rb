@@ -19,8 +19,11 @@ module EpiDeploy
       setup_class.initial_setup_if_required
       
       release = self.release_class.new
-      release.create!
-      print_success "Release #{release.version} created with tag #{release.tag}"
+      if release.create!
+        print_success "Release #{release.version} created with tag #{release.tag}"
+      else
+        print_notice "Release #{release.version} has already been created on the most commit"
+      end
       environments = self.options.to_hash[:deploy]
       self.deploy(environments) unless environments.nil?
     end
