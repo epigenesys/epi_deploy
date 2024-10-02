@@ -32,7 +32,8 @@ module EpiDeploy
       if release.nil?
         print_failure_and_abort "You did not enter a valid Git reference. Please try again."
       else
-        if release.deploy!(environments)
+        deployer = Deployer.new(release)
+        if deployer.deploy!(environments)
           print_success "Deployment complete."
         else
           print_failure_and_abort "An error occurred."

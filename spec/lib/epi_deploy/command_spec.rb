@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'epi_deploy/stages_extractor'
 require 'epi_deploy/command'
+require 'epi_deploy/deployer'
 require 'slop'
 
 class MockOptions
@@ -29,9 +30,9 @@ end
 
 describe "Command" do
   before do
-    $stdout = StringIO.new
-    $stderr = StringIO.new
+    allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_notice: nil, print_success: nil, print_failure_and_abort: nil)
   end
+
   let(:options) { MockOptions.new }
   let(:args)    { [] }
   
@@ -73,9 +74,13 @@ describe "Command" do
   end
   
   describe "deploy" do
-    before { allow(Kernel).to receive(:abort) }
     subject { EpiDeploy::Command.new options, args, MockRelease }
-    
+
+    before do
+      allow(Kernel).to receive(:abort)
+      allow_any_instance_of(EpiDeploy::Deployer).to receive(:deploy!).and_return(true)
+    end
+
     around do |example|
       Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
         example.call
@@ -83,16 +88,21 @@ describe "Command" do
     end
     
     describe "required arguments" do
+      let(:release) { MockRelease.new }
+      let(:deployer) { double(:deployer) }
+
       it "errors if no deploy environment is provided" do
         expect{ subject.deploy }.to raise_error(Slop::InvalidArgumentError, "No environments provided")
       end
       
-      it "accepts valid target environments" do
-        subject.args = %w(production)
+      it "it deploys the specified targets when they are all valid" do
         allow(subject).to receive_messages(determine_release_reference: :latest)
-        release = MockRelease.new
         allow(MockRelease).to receive_messages(find: release)
-        expect(release).to receive(:deploy!).with(%w(production))
+        allow(EpiDeploy::Deployer).to receive(:new).and_return(deployer)
+
+        expect(deployer).to receive(:deploy!).with(%w(production))
+
+        subject.args = %w(production)
         subject.deploy
       end
       
@@ -104,42 +114,38 @@ describe "Command" do
     
     describe "optional --ref flag" do
       subject { EpiDeploy::Command.new options, ['production'], MockRelease }
+
       let(:options) do
         options = Hash.new
-        allow(options).to receive_messages(ref?: true)
         options
       end
-      
+
       before do
-        allow(subject).to receive_messages(valid_reference?: true)
+        allow(options).to receive_messages(ref?: true)
       end
-      
+
       specify "if not supplied then the latest release is used" do
         allow(options).to receive_messages(ref?: false)
-        subject.options = options
         expect(subject.release_class).to receive(:find).with(:latest).and_return(MockRelease.new)
         subject.deploy
       end
       
       specify "if flag supplied with no argument then list of releases displayed with choice" do
         options[:ref] = nil
-        subject.options = options
         expect(subject).to receive(:prompt_for_a_release)
         subject.deploy
       end
       
       it "can be supplied with a git reference" do
         options[:ref] = 'an_exisiting_ref'
-        subject.options = options
         expect(subject.release_class).to receive(:find).with('an_exisiting_ref').and_return(MockRelease.new)
         subject.deploy
       end
       
       it "errors if the reference not exist" do
         options[:ref] = 'invalid_ref'
-        subject.options = options
-        allow(subject).to receive_messages(valid_reference?: false)
-        expect(subject).to receive_messages(print_failure_and_abort: "You did not enter a valid Git reference. Please try again.")
+        allow(MockRelease).to receive_messages(find: nil)
+        expect(subject).to receive(:print_failure_and_abort).with("You did not enter a valid Git reference. Please try again.")
         subject.deploy
       end
     end
