@@ -44,11 +44,12 @@ module EpiDeploy
         stages_or_environments.each do |stage_or_environment|
           stages_extractor.stages_for_stage_or_environment(stage_or_environment).each do |stage|
             tag_name = tag_name_for_stage(stage)
-            git_wrapper.create_or_update_tag(tag_name, commit)
-            print_success "Created deployment tag #{tag_name} on commit #{commit}"
-
+            
             completed = run_cap_deploy_to(stage)
-            if !completed
+            if completed
+              git_wrapper.create_or_update_tag(tag_name, commit)
+              print_success "Created deployment tag #{tag_name} on commit #{commit}"
+            else
               print_failure_and_abort "Deployment failed - please review output before deploying again"
             end
           end

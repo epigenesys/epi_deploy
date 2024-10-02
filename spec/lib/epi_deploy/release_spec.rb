@@ -22,6 +22,13 @@ class MockGit
   def delete_branches(branches); end
 end
 
+def deployment_stage_with_timestamp(stage)
+  satisfy do |tag_name|
+    tag_stage, timestamp = tag_name.split('-', 2)
+    tag_stage == stage && (Time.now - Time.strptime(timestamp, '%Y_%m_%d-%H_%M_%S') <= 5)
+  end
+end
+
 describe EpiDeploy::Release do
 
   let(:git_wrapper) { MockGit.new }
@@ -113,23 +120,32 @@ describe EpiDeploy::Release do
       end.to_not raise_error
     end
 
-    it 'adds a tag with the deployment stage and timestamp' do
-      def deployment_stage_with_timestamp(stage)
-        satisfy do |tag_name|
-          tag_stage, timestamp = tag_name.split('-', 2)
-          tag_stage == stage && (Time.now - Time.strptime(timestamp, '%Y_%m_%d-%H_%M_%S') <= 5)
-        end
+    context 'if deployment to all stages is successful' do
+      it 'adds a tag for all deployment stages with the name of the stage and timestamp' do
+        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with('bundle exec cap production.epigenesys deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with('bundle exec cap production.genesys deploy target=test').and_return(true)
+
+        expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('demo'), subject.commit)
+        expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.epigenesys'), subject.commit)
+        expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.genesys'), subject.commit)
+
+        subject.deploy! ['production.epigenesys', 'production.genesys', 'demo']
       end
+    end
 
-      expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
-      expect(Kernel).to receive(:system).with('bundle exec cap production.epigenesys deploy target=test').and_return(true)
-      expect(Kernel).to receive(:system).with('bundle exec cap production.genesys deploy target=test').and_return(true)
+    context 'if deployment to some stages is unsuccessful' do
+      it 'only adds the tag to the deployment stages have succeeded' do
+        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with('bundle exec cap production.epigenesys deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with('bundle exec cap production.genesys deploy target=test').and_return(false)
 
-      expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.epigenesys'), subject.commit)
-      expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.genesys'), subject.commit)
-      expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('demo'), subject.commit)
+        expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('demo'), subject.commit)
+        expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.epigenesys'), subject.commit)
+        expect(git_wrapper).to_not receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.genesys'), subject.commit)
 
-      subject.deploy! ['production.epigenesys', 'production.genesys', 'demo']
+        subject.deploy! ['production.epigenesys', 'production.genesys', 'demo']
+      end
     end
 
     it 'deletes branches for all deployment environments' do
