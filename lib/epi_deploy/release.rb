@@ -22,8 +22,8 @@ module EpiDeploy
         git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
 
         self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
-        git_wrapper.tag self.tag
-        git_wrapper.push git_wrapper.current_branch
+        git_wrapper.create_or_update_tag(self.tag, push: false)
+        git_wrapper.push(git_wrapper.current_branch, tags: true)
       rescue ::Git::GitExecuteError => e
         print_failure_and_abort "A git error occurred: #{e.message}"
       end

@@ -15,7 +15,7 @@ class MockGit
   def short_commit_hash; 'abc1234'; end
   def commit(msg); end
   def tag(name); end
-  def push(opts = {}); end
+  def push(ref, **opts); end
   def pull; end
   def current_branch; 'main'; end
   def create_or_update_tag(stage, commit); end
@@ -79,14 +79,14 @@ describe EpiDeploy::Release do
       allow(subject).to receive_messages bump_version: 42
       now = Time.new 2014, 12, 1, 16, 15
       allow(Time).to receive_messages now: now
-      expect(git_wrapper).to receive(:tag).with('2014dec01-1615-abc1234-v42')
+      expect(git_wrapper).to receive(:create_or_update_tag).with('2014dec01-1615-abc1234-v42', push: false)
 
       expect { subject.create! }.to_not raise_error
     end
 
     it "pushes the new version to primary branch to reduce the chance of version number collisions" do
       allow(subject).to receive_messages bump_version: 42
-      expect(git_wrapper).to receive(:push)
+      expect(git_wrapper).to receive(:push).with('main', tags: true)
 
       expect { subject.create! }.to_not raise_error
     end

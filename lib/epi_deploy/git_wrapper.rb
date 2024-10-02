@@ -36,10 +36,6 @@ module EpiDeploy
       git.log.first.sha[0..6]
     end
 
-    def tag(tag_name)
-      git.add_tag(tag_name, annotate: true, message: tag_name)
-    end
-
     def get_commit(git_reference)
       if git_reference == :latest
         print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if tag_list.empty?
@@ -55,10 +51,16 @@ module EpiDeploy
       end
     end
 
-    def create_or_update_tag(name, commit)
-      git.push('origin', "refs/tags/#{name}", delete: true)
+    def create_or_update_tag(name, commit = nil, push: true)
+      if push
+        git.push('origin', "refs/tags/#{name}", delete: true)
+      end
+
       git.add_tag(name, commit, annotate: true, f: true, message: name)
-      git.push('origin', name)
+
+      if push
+        git.push('origin', name)
+      end
     end
 
     def create_or_update_branch(name, commit)
