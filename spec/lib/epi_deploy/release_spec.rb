@@ -27,22 +27,23 @@ describe EpiDeploy::Release do
   let(:git_wrapper) { MockGit.new }
   before do
     allow(subject).to receive_messages(reference: 'test', git_wrapper: git_wrapper, commit: 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b', app_version: double(bump!: 42, version_file_path: ''))
+    allow(git_wrapper).to receive(:most_recent_commit).and_return(double('commit', message: 'Some non-release commit'))
   end
 
   describe "#create!" do
     describe "preconditions" do
       it "can only be done on the primary branch" do
-        allow(subject).to receive_messages(git_wrapper: MockGit.new(on_primary_branch: false))
+        allow(git_wrapper).to receive_messages(on_primary_branch?: false)
         expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the main or master branch. Please switch to main or master and try again.')
 
-        expect(subject.create!).to eq true
+        subject.create!
       end
 
       it "errors when pending changes exist" do
-        allow(subject).to receive_messages(git_wrapper: MockGit.new(pending_changes: true))
+        allow(git_wrapper).to receive_messages(pending_changes?: true)
         expect(subject).to receive(:print_failure_and_abort).with('You have pending changes, please commit or stash them and try again.')
 
-        expect(subject.create!).to eq true
+        subject.create!
       end
     end
 
