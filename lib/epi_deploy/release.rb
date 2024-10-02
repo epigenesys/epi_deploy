@@ -53,9 +53,9 @@ module EpiDeploy
               print_failure_and_abort "Deployment failed - please review output before deploying again"
             end
           end
-        rescue ::Git::GitExecuteError => e
-          print_failure_and_abort "A git error occurred: #{e.message}"
         end
+      rescue ::Git::GitExecuteError => e
+        print_failure_and_abort "A git error occurred: #{e.message}"
       end
     end
 
