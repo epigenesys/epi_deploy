@@ -5,6 +5,7 @@ require 'epi_deploy/git_wrapper'
 describe EpiDeploy::GitWrapper do
 
   let(:mocked_git) { double(:git, current_branch: current_branch, add_tag: true, push: true) }
+  let(:commit) { 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b' }
   let(:current_branch) { 'main' }
   before(:each) do
     allow(subject).to receive(:git).and_return(mocked_git)
@@ -13,10 +14,19 @@ describe EpiDeploy::GitWrapper do
   describe '#create_or_update_tag' do
     it 'adds a new tag for the stage to the commit' do
       expect(mocked_git).to receive(:push).with('origin', 'refs/tags/production', delete: true)
-      expect(mocked_git).to receive(:add_tag).with('production', 'main', any_args)
+      expect(mocked_git).to receive(:add_tag).with('production', commit, any_args)
       expect(mocked_git).to receive(:push).with('origin', 'production')
 
-      subject.create_or_update_tag 'production', 'main'
+      subject.create_or_update_tag 'production', commit
+    end
+  end
+
+  describe '#create_or_update_branch' do
+    it 'creates or moves the branch to the commit' do
+      expect(Kernel).to receive(:system).with("git branch -f production #{commit}").and_return(true)
+      expect(mocked_git).to receive(:push).with('origin', 'production', force: true, tags: false)
+
+      subject.create_or_update_branch('production', commit)
     end
   end
 
@@ -62,28 +72,26 @@ describe EpiDeploy::GitWrapper do
     end
 
     context 'if all the branches exist as local branches' do
-      let(:production_branch) { double('production branch') }
-      let(:demo_branch) { double('demo branch') }
+      let(:production_branch) { double('production branch', delete: true) }
+      let(:demo_branch) { double('demo branch', delete: true) }
       let(:local_branches) {
-        {
-          'production' => production_branch,
-          'demo' => demo_branch,
-        }
+        [
+          production_branch,
+          demo_branch,
+        ]
       }
 
       specify 'it deletes each branch from the remote' do
         allow(production_branch).to receive(:delete)
         allow(demo_branch).to receive(:delete)
 
-        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', delete: true)
-        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/demo', delete: true)
+        expect(subject).to receive(:run_custom_command).with("git push origin refs/heads/production refs/heads/demo --delete")
 
         subject.delete_branches(branches)
       end
 
       specify 'it deletes each branch locally' do
-        expect(local_branches).to receive(:[]).with('production').and_call_original
-        expect(local_branches).to receive(:[]).with('demo').and_call_original
+        allow(subject).to receive(:run_custom_command)
         expect(production_branch).to receive(:delete)
         expect(demo_branch).to receive(:delete)
 
@@ -93,25 +101,21 @@ describe EpiDeploy::GitWrapper do
 
     context 'if not all the branches exist as local branches' do
       let(:production_branch) { double('production branch') }
-      let(:local_branches) {
-        {
-          'production' => production_branch,
-        }
-      }
+      let(:demo_branch) { double('demo branch') }
+      let(:local_branches) { [production_branch ] }
 
       specify 'it deletes each branch from the remote' do
         allow(production_branch).to receive(:delete)
 
-        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', delete: true)
-        expect(mocked_git).to receive(:push).with('origin', 'refs/heads/demo', delete: true)
+        expect(subject).to receive(:run_custom_command).with("git push origin refs/heads/production refs/heads/demo --delete")
 
         subject.delete_branches(branches)
       end
 
       specify 'it deletes only the branches that exist locally' do
-        expect(local_branches).to receive(:[]).with('production').and_call_original
-        expect(local_branches).to_not receive(:[]).with('demo')
+        allow(subject).to receive(:run_custom_command)
         expect(production_branch).to receive(:delete)
+        expect(demo_branch).to_not receive(:delete)
 
         subject.delete_branches(branches)
       end

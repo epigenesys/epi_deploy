@@ -23,8 +23,9 @@ module EpiDeploy
       git.commit_all message
     end
 
-    def push(branch, options = {force: false, tags: true})
-      git.push 'origin', branch, options
+    def push(branch, **options)
+      options = { force: false, tags: true }.merge(options)
+      git.push 'origin', branch, **options
     end
 
     def add(files = nil)
@@ -60,15 +61,15 @@ module EpiDeploy
       git.push('origin', name)
     end
 
+    def create_or_update_branch(name, commit)
+      force_create_branch(name, commit)
+      self.push name, force: true, tags: false
+    end
+
     def delete_branches(branches)
-      branches.each do |branch|
-        git.push('origin', "refs/heads/#{branch}", delete: true)
-        if local_branches.has_key? branch
-          branch_object = local_branches[branch]
-          branch_object.delete
-          local_branches.delete(branch)
-        end
-      end
+      remote_refs = branches.map { |branch| "refs/heads/#{branch}" }
+      run_custom_command("git push origin #{remote_refs.join(' ')} --delete")
+      local_branches(branches).each(&:delete)
     end
 
     def tag_list
@@ -85,11 +86,19 @@ module EpiDeploy
       @git ||= ::Git.open(Dir.pwd)
     end
 
-    def local_branches
-      @branches ||= git.branches.local.map do |branch|
-        [branch.name, branch]
-      end.compact.to_h
+    def force_create_branch(name, commit)
+      run_custom_command("git branch -f #{name} #{commit}")
     end
 
+    def local_branches(branch_names = [])
+      branches = git.branches.local.find { |branch| branch_names.include? branch.name }
+      branches || []
+    end
+
+    def run_custom_command(command)
+      unless Kernel.system(command)
+        raise ::Git::GitExecuteError.new("Failed to run command '#{command}'")
+      end
+    end
   end
 end
