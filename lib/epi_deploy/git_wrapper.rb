@@ -59,7 +59,7 @@ module EpiDeploy
       git.add_tag(name, commit, annotate: true, f: true, message: name)
 
       if push
-        git.push('origin', name)
+        git.push('origin', "refs/tags/#{name}")
       end
     end
 
@@ -93,7 +93,7 @@ module EpiDeploy
     end
 
     def force_create_branch(name, commit)
-      run_custom_command("git branch -f #{name} #{commit}")
+      run_custom_command("git branch -f refs/heads/#{name} #{commit}")
     end
 
     def local_branches(branch_names = [])
