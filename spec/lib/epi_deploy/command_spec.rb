@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'epi_deploy/stages_extractor'
 require 'epi_deploy/command'
 require 'epi_deploy/deployer'
 require 'slop'
