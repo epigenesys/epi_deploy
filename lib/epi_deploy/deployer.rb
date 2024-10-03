@@ -48,13 +48,17 @@ module EpiDeploy
       end
 
       def deploy_with_environment_branches(stages_or_environments)
+        updated_branches = Set.new
+
         stages_or_environments.each do |stage_or_environment|
           begin
             git_wrapper.pull
 
             matches = StagesExtractor.match_with(stage_or_environment)
             # Force the tag/branch to the commit we want to deploy
-            git_wrapper.create_or_update_branch(matches[:stage], @release.commit)
+            unless updated_branches.include? matches[:stage]
+              git_wrapper.create_or_update_branch(matches[:stage], @release.commit)
+            end
 
             completed = run_cap_deploy_to(stage_or_environment)
             if !completed
