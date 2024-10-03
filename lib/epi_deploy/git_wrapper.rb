@@ -42,13 +42,7 @@ module EpiDeploy
         git_reference = tag_list.first
       end
 
-      git_object_type = git.lib.object_type(git_reference)
-
-      case git_object_type
-        when 'tag'    then git.tag(git_reference)
-        when 'commit' then git.object(git_reference)
-        else nil
-      end
+      git.object(commit_hash_for(git_reference))
     end
 
     def create_or_update_tag(name, commit = nil, push: true)
@@ -84,6 +78,10 @@ module EpiDeploy
 
     def most_recent_commit
       git.log(1).first
+    end
+
+    def commit_hash_for(ref)
+      `git rev-list -n1 #{ref}`.strip
     end
 
     private
