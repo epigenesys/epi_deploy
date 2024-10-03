@@ -7,7 +7,7 @@ module EpiDeploy
     def run!
       load_config
 
-      opts = Slop.parse strict: true do
+      Slop.parse strict: true do
 
         banner 'Usage: bundle exec epi_deploy <command>'
     
