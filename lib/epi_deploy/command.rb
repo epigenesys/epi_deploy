@@ -22,7 +22,7 @@ module EpiDeploy
       if release.create!
         print_success "Release #{release.version} created with tag #{release.tag}"
       else
-        print_notice "Release #{release.version} has already been created on the most commit"
+        print_notice "Release #{release.version} has already been created on the most recent commit"
       end
       environments = self.options.to_hash[:deploy]
       self.deploy(environments) unless environments.nil?
