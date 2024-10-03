@@ -15,7 +15,7 @@ describe EpiDeploy::GitWrapper do
     it 'adds a new tag for the stage to the commit' do
       expect(mocked_git).to receive(:push).with('origin', 'refs/tags/production', delete: true)
       expect(mocked_git).to receive(:add_tag).with('production', commit, any_args)
-      expect(mocked_git).to receive(:push).with('origin', 'production')
+      expect(mocked_git).to receive(:push).with('origin', 'refs/tags/production')
 
       subject.create_or_update_tag 'production', commit
     end
@@ -23,9 +23,9 @@ describe EpiDeploy::GitWrapper do
 
   describe '#create_or_update_branch' do
     it 'creates or moves the branch to the commit' do
-      expect(Kernel).to receive(:system).with("git branch -f production #{commit}").and_return(true)
-      expect(mocked_git).to receive(:push).with('origin', 'production', force: true, tags: false)
-
+      expect(Kernel).to receive(:system).with("git branch -f refs/heads/production #{commit}").and_return(true)
+      expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', force: true, tags: false
+)
       subject.create_or_update_branch('production', commit)
     end
   end

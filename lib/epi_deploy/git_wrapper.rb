@@ -65,7 +65,7 @@ module EpiDeploy
 
     def create_or_update_branch(name, commit)
       force_create_branch(name, commit)
-      self.push name, force: true, tags: false
+      self.push "refs/heads/#{name}", force: true, tags: false
     end
 
     def delete_branches(branches)
