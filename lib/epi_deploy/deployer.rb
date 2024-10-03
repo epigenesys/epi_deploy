@@ -58,6 +58,7 @@ module EpiDeploy
             # Force the tag/branch to the commit we want to deploy
             unless updated_branches.include? matches[:stage]
               git_wrapper.create_or_update_branch(matches[:stage], @release.commit)
+              updated_branches << matches[:stage]
             end
 
             completed = run_cap_deploy_to(stage_or_environment)
