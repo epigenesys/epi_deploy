@@ -7,7 +7,7 @@ module EpiDeploy
   class Deployer
     include Helpers
 
-    def initialize(release, git_wrapper: nil)
+    def initialize(release)
       @release = release
     end
 
