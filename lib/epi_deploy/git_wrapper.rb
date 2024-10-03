@@ -97,7 +97,7 @@ module EpiDeploy
     end
 
     def local_branches(branch_names = [])
-      branches = git.branches.local.find { |branch| branch_names.include? branch.name }
+      branches = git.branches.local.filter { |branch| branch_names.include? branch.name }
       branches || []
     end
 
