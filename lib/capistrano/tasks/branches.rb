@@ -1,5 +1,5 @@
 if File.exist?('config/initializers/version.rb')
-  require 'config/initializers/version'
+  require File.join(Dir.pwd, 'config/initializers/version')
 end
 
 namespace :epi_deploy do
