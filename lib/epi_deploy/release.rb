@@ -20,13 +20,16 @@ module EpiDeploy
         if git_wrapper.most_recent_commit.message.start_with? 'Bumped to version'
           false
         else
-          new_version = app_version.bump!
+          new_version = app_version.bump
           git_wrapper.add(app_version.version_file_path)
           git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
-
+          
           self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
+          app_version.latest_release_tag = self.tag
           git_wrapper.create_or_update_tag(self.tag, push: false)
           git_wrapper.push(git_wrapper.current_branch, tags: true)
+
+          app_version.save!
           true
         end
       rescue ::Git::GitExecuteError => e

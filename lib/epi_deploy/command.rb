@@ -15,9 +15,7 @@ module EpiDeploy
       self.release_class = release_class
     end
 
-    def release(setup_class = EpiDeploy::Setup)
-      setup_class.initial_setup_if_required
-      
+    def release
       release = self.release_class.new
       if release.create!
         print_success "Release #{release.version} created with tag #{release.tag}"
