@@ -1,5 +1,5 @@
 if File.exist?('config/initializers/version.rb')
-  require_relative 'config/initializers/version'
+  require 'config/initializers/version'
 end
 
 namespace :epi_deploy do
