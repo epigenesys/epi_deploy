@@ -1,1 +1,1 @@
-load File.join(File.dirname(__FILE__), 'tasks', 'multi_customers.rb')
+Dir.glob(File.join(File.dirname(__FILE__), 'tasks', '*.rb')).each { |f| require f }
