@@ -59,9 +59,9 @@ RSpec.describe EpiDeploy::Deployer do
       end
 
       it "runs the capistrano deploy command for each of the environments given" do
-        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
-        expect(Kernel).to receive(:system).with('bundle exec cap production.epigenesys deploy target=test').and_return(true)
-        expect(Kernel).to receive(:system).with('bundle exec cap production.genesys deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap demo deploy").and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.epigenesys deploy").and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.genesys deploy").and_return(true)
 
         expect do
           subject.deploy! %w(demo production)
@@ -70,9 +70,9 @@ RSpec.describe EpiDeploy::Deployer do
 
       context 'if deployment to all stages is successful' do
         it 'adds a tag for all deployment stages with the name of the stage and timestamp' do
-          expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
-          expect(Kernel).to receive(:system).with('bundle exec cap production.epigenesys deploy target=test').and_return(true)
-          expect(Kernel).to receive(:system).with('bundle exec cap production.genesys deploy target=test').and_return(true)
+          expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap demo deploy").and_return(true)
+          expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.epigenesys deploy").and_return(true)
+          expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.genesys deploy").and_return(true)
 
           expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('demo'), release.commit)
           expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.epigenesys'), release.commit)
@@ -84,9 +84,9 @@ RSpec.describe EpiDeploy::Deployer do
 
       context 'if deployment to some stages is unsuccessful' do
         it 'only adds the tag to the deployment stages have succeeded' do
-          expect(Kernel).to receive(:system).with('bundle exec cap production.epigenesys deploy target=test').and_return(true)
-          expect(Kernel).to receive(:system).with('bundle exec cap production.genesys deploy target=test').and_return(false)
-          expect(Kernel).to_not receive(:system).with('bundle exec cap demo deploy target=test')
+          expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.epigenesys deploy").and_return(true)
+          expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.genesys deploy").and_return(false)
+          expect(Kernel).to_not receive(:system).with("BRANCH=#{release.commit} bundle exec cap demo deploy")
 
           expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.epigenesys'), release.commit)
           expect(git_wrapper).to_not receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.genesys'), release.commit)
@@ -97,8 +97,8 @@ RSpec.describe EpiDeploy::Deployer do
       end
 
       it 'deletes branches for all deployment environments' do
-        expect(Kernel).to receive(:system).with('bundle exec cap production.epigenesys deploy target=test').and_return(true)
-        expect(Kernel).to receive(:system).with('bundle exec cap production.genesys deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.epigenesys deploy").and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.genesys deploy").and_return(true)
 
         expect(git_wrapper).to receive(:delete_branches).with(a_collection_containing_exactly('production', 'demo'))
 
@@ -112,7 +112,7 @@ RSpec.describe EpiDeploy::Deployer do
       end
 
       it "runs the capistrano deploy task for single-customer environments" do
-        expect(Kernel).to receive(:system).with('bundle exec cap demo deploy target=test').and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap demo deploy").and_return(true)
 
         expect do
           subject.deploy! %w(demo)
@@ -120,7 +120,7 @@ RSpec.describe EpiDeploy::Deployer do
       end
 
       it 'runs the capistrano deploy_all task for multi-customer environments' do
-        expect(Kernel).to receive(:system).with('bundle exec cap production deploy_all target=test').and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production deploy_all").and_return(true)
 
         expect do
           subject.deploy! %w(production)

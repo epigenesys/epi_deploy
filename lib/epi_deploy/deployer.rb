@@ -93,7 +93,7 @@ module EpiDeploy
           "deploy"
         end
 
-        Kernel.system "bundle exec cap #{environment} #{task_to_run} target=#{@release.reference}"
+        Kernel.system "BRANCH=#{@release.commit} bundle exec cap #{environment} #{task_to_run}"
       end
   end
 end
