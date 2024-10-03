@@ -36,15 +36,6 @@ module EpiDeploy
       git.log.first.sha[0..6]
     end
 
-    def get_commit(git_reference)
-      if git_reference == :latest
-        print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if tag_list.empty?
-        git_reference = tag_list.first
-      end
-
-      git.object(commit_hash_for(git_reference))
-    end
-
     def create_or_update_tag(name, commit = nil, push: true)
       if push
         git.push('origin', "refs/tags/#{name}", delete: true)
@@ -80,8 +71,8 @@ module EpiDeploy
       git.log(1).first
     end
 
-    def commit_hash_for(ref)
-      `git rev-list -n1 #{ref}`.strip
+    def git_object_for(ref)
+      git.object(commit_hash_for(ref))
     end
 
     private
@@ -103,6 +94,10 @@ module EpiDeploy
       unless Kernel.system(command)
         raise ::Git::GitExecuteError.new("Failed to run command '#{command}'")
       end
+    end
+
+    def commit_hash_for(ref)
+      `git rev-list -n1 #{ref}`.strip
     end
   end
 end

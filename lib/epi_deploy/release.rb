@@ -41,8 +41,10 @@ module EpiDeploy
       app_version.version
     end
 
-    def tag_list(options = nil)
-      git_wrapper.tag_list(options)
+    def release_tags_list(options = nil)
+      git_wrapper.tag_list(options).filter do |tag|
+        tag.match?(/\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/)
+      end
     end
 
     def git_wrapper(klass = EpiDeploy::GitWrapper)
@@ -51,7 +53,7 @@ module EpiDeploy
 
     def self.find(reference)
       release = self.new
-      commit = release.git_wrapper.get_commit(reference)
+      commit = self.get_commit(reference)
       print_failure_and_abort("Cannot find commit for reference '#{reference}'") if commit.nil?
       release.commit = commit
       release.reference = reference
@@ -68,6 +70,15 @@ module EpiDeploy
       def date_and_time_for_tag(time_class = (Time.respond_to?(:zone) ? Time.zone : Time))
         time = time_class.now
         time.strftime "%Y#{MONTHS[time.month - 1]}%d-%H%M"
+      end
+
+      def get_commit(git_reference)
+        if git_reference == :latest
+          print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if self.release_tags_list.empty?
+          git_reference = release_tags_list.first
+        end
+  
+        git_wrapper.git_object_for(git_reference)
       end
 
   end

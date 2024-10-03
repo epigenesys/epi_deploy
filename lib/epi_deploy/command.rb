@@ -49,7 +49,7 @@ module EpiDeploy
         print_notice "Select a recent release (or just press enter for latest):"
         
         tag_list = {}
-        self.release_class.new.tag_list.each_with_index do |release, i|
+        self.release_class.new.release_tags_list.each_with_index do |release, i|
           number = i + 1
           tag_list[number.to_s] = release
           print_notice "#{number}: #{release}"
