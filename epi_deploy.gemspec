@@ -6,8 +6,8 @@ require 'epi_deploy/version'
 Gem::Specification.new do |gem|
   gem.name          = "epi_deploy"
   gem.version       = EpiDeploy::VERSION
-  gem.authors       = ["Anthony Nettleship", "Shuo Chen", "Chris Hunt", "James Gregory"]
-  gem.email         = ["anthony.nettleship@epigenesys.org.uk", "shuo.chen@epigenesys.org.uk", "chris.hunt@epigenesys.org.uk", "james.gregory@epigenesys.org.uk"]
+  gem.authors       = ["Anthony Nettleship", "Shuo Chen", "Chris Hunt", "James Gregory", "William Lee"]
+  gem.email         = ["anthony.nettleship@epigenesys.org.uk", "shuo.chen@epigenesys.org.uk", "chris.hunt@epigenesys.org.uk", "james.gregory@epigenesys.org.uk", "william.lee@epigenesys.org.uk"]
   gem.description   = "A gem to facilitate deployment across multiple git branches and evironments"
   gem.summary       = "eD"
   gem.homepage      = "https://www.epigenesys.org.uk"
