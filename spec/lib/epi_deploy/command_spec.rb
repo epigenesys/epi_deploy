@@ -37,18 +37,10 @@ describe "Command" do
   
   describe "release" do
     subject { EpiDeploy::Command.new options, args, MockRelease }
-    let(:setup_class) { double(initial_setup_if_required: true) }
-      
-    describe "preconditions" do
-      it "sets up the initial bra nches if they don't exist" do
-        expect(setup_class).to receive :initial_setup_if_required
-        subject.release(setup_class)
-      end
-    end
-    
+
     specify "the user is notified of success" do
       expect(subject).to receive_messages(print_success: "Release v5 created with tag nice-taggy")
-      subject.release(setup_class)
+      subject.release
     end
     
     describe "optional --deploy flag" do
@@ -62,12 +54,12 @@ describe "Command" do
       it "deploys to the specified environments if options specified" do
         subject.options = MockOptions.new  deploy: %w(production)
         expect(subject).to receive(:deploy).with(%w(production))
-        subject.release(setup_class)
+        subject.release
       end
       
       it "does not deploy if option not specified" do
         expect(subject).to_not receive(:deploy)
-        subject.release(setup_class)
+        subject.release
       end
     end
   end

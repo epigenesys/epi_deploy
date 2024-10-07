@@ -25,8 +25,9 @@ end
 describe EpiDeploy::Release do
 
   let(:git_wrapper) { MockGit.new }
+  let(:app_version) { double(bump: 42, version_file_path: '', :latest_release_tag= => nil, save!: true) }
   before do
-    allow(subject).to receive_messages(reference: 'test', git_wrapper: git_wrapper, commit: 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b', app_version: double(bump!: 42, version_file_path: ''))
+    allow(subject).to receive_messages(reference: 'test', git_wrapper: git_wrapper, commit: 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b', app_version: app_version)
     allow(git_wrapper).to receive(:most_recent_commit).and_return(double('commit', message: 'Some non-release commit'))
   end
 
@@ -62,9 +63,7 @@ describe EpiDeploy::Release do
     end
 
     it "bumps the version number" do
-      app_version = double version_file_path: ''
-      allow(subject).to receive_messages(app_version: app_version)
-      expect(app_version).to receive(:bump!)
+      expect(app_version).to receive(:bump)
 
       expect(subject.create!).to eq true
     end
