@@ -1,6 +1,6 @@
 module EpiDeploy
   class AppVersion
-    attr_accessor :version_file_path, :version, :latest_release_tag, 
+    attr_accessor :version_file_path, :version, :latest_release_tag
     
     def initialize(current_dir = Dir.pwd)
       self.version_file_path = File.join(current_dir, 'config/initializers/version.rb')
