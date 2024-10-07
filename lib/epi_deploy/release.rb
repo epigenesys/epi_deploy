@@ -21,15 +21,15 @@ module EpiDeploy
           false
         else
           new_version = app_version.bump
-          git_wrapper.add(app_version.version_file_path)
-          git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
-          
           self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
           app_version.latest_release_tag = self.tag
+          app_version.save!
+          git_wrapper.add(app_version.version_file_path)
+          git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
+
           git_wrapper.create_or_update_tag(self.tag, push: false)
           git_wrapper.push(git_wrapper.current_branch, tags: true)
 
-          app_version.save!
           true
         end
       rescue ::Git::GitExecuteError => e
@@ -41,8 +41,8 @@ module EpiDeploy
       app_version.version
     end
 
-    def release_tags_list(options = nil)
-      git_wrapper.tag_list(options).filter do |tag|
+    def release_tags_list
+      git_wrapper.tag_list.filter do |tag|
         tag.match?(/\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/)
       end
     end
@@ -53,7 +53,7 @@ module EpiDeploy
 
     def self.find(reference)
       release = self.new
-      commit = self.get_commit(reference)
+      commit = release.send(:get_commit, reference)
       print_failure_and_abort("Cannot find commit for reference '#{reference}'") if commit.nil?
       release.commit = commit
       release.reference = reference
