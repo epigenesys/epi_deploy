@@ -30,6 +30,12 @@ module EpiDeploy
       self.version += 1
     end
 
+    def self.open(current_dir = Dir.pwd)
+      app_version = self.new(current_dir)
+      app_version.load
+      app_version
+    end
+
     private
       def version_file_exists?
         File.exist? version_file_path

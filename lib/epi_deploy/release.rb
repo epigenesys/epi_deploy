@@ -63,7 +63,7 @@ module EpiDeploy
     private
 
       def app_version(app_version_class = EpiDeploy::AppVersion)
-        @app_version ||= app_version_class.new
+        @app_version ||= app_version_class.open
       end
 
       # Use Time.zone if we have it (i.e. Rails), otherwise use Time
