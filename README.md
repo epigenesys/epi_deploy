@@ -130,7 +130,13 @@ Tags will be automatically created for each successful deployment with the forma
    EpiDeploy.use_timestamped_deploy_tags = true
    ```
 
-1. Push your changes and deploy to a demo site to test it is working correctly.
+1. If it hasn't be added already, add this line to `Capfile`
+
+   ```rb
+   require 'capistrano/epi_deploy'
+   ```
+
+1. Commit and push your changes, then deploy to a demo site to test it is working correctly.
 
 If you've previously used the `use_tags_for_deploy` configuration option, then this has now been removed since v2.3. If you upgrade to v2.3, then you should remove the old deployment tags manually from your local repo and remotely by doing, e.g.
 
