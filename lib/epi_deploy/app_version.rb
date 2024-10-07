@@ -26,7 +26,7 @@ module EpiDeploy
       end
     end
 
-    def bump!
+    def bump
       self.version += 1
     end
 
