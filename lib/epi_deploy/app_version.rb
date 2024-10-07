@@ -21,7 +21,7 @@ module EpiDeploy
 
     def save!
       File.open version_file_path, 'w' do |f|
-        f.write "APP_VERSION = '#{new_version}'\n"
+        f.write "APP_VERSION = '#{version}'\n"
         f.write "LATEST_RELEASE_TAG = '#{latest_release_tag}'\n"
       end
     end
