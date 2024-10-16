@@ -75,13 +75,24 @@ describe EpiDeploy::Release do
       expect(subject.create!).to eq true
     end
 
-    it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version for the new commit" do
-      allow(subject).to receive_messages bump_version: 42
-      now = Time.new 2014, 12, 1, 16, 15
-      allow(Time).to receive_messages now: now
-      expect(git_wrapper).to receive(:create_or_update_tag).with('2014dec01-1615-abc1234-v42', push: false)
+    context 'given that the date and time is 2024-12-1 16:15:00' do
+      before do
+        now = Time.new 2014, 12, 1, 16, 15
+        allow(Time).to receive_messages now: now
+      end
 
-      expect(subject.create!).to eq true
+      it 'sets the latest release tag in the version the newly-created tag' do
+        expect(app_version).to receive(:latest_release_tag=).with('2014dec01-1615-abc1234-v42')
+
+        expect(subject.create!).to eq true
+      end
+
+      it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version for the new commit" do
+        allow(subject).to receive_messages bump_version: 42
+        expect(git_wrapper).to receive(:create_or_update_tag).with('2014dec01-1615-abc1234-v42', push: false)
+
+        expect(subject.create!).to eq true
+      end
     end
 
     it "pushes the new version to primary branch to reduce the chance of version number collisions" do
