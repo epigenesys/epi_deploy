@@ -46,7 +46,7 @@ module EpiDeploy
       end
 
       def extract_latest_release_tag(contents)
-        if (match = contents.match(/LATEST_RELEASE_TAG = '(?<tag>[A-za-z0-9_-])+'/))
+        if (match = contents.match(/LATEST_RELEASE_TAG = '(?<tag>[A-Za-z0-9_-]+)'/))
           match[:tag]
         else
           ''
