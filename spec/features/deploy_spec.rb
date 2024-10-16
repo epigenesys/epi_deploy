@@ -3,10 +3,12 @@ require 'support/aruba_helper'
 
 describe "Deploy", type: :aruba do
 
-  it "errors if environment doesn't exist" do
+  before do
     setup_aruba_and_git
     run_command_and_stop 'bundle install --quiet'
+  end
 
+  it "errors if environment doesn't exist" do
     run_ed 'deploy invalidenvironment'
 
     expect(last_command_started).to have_exit_status(1)
@@ -14,9 +16,6 @@ describe "Deploy", type: :aruba do
   end
 
   it "errors if no latest release" do
-    setup_aruba_and_git
-    run_command_and_stop 'bundle install --quiet'
-
     run_ed 'deploy production'
 
     expect(last_command_started).to have_exit_status(1)
@@ -24,10 +23,8 @@ describe "Deploy", type: :aruba do
   end
 
   it "deploys latest release" do
-    setup_aruba_and_git
     run_command_and_stop 'git tag -a example_tag -m "For testing"'  # Create a pretend release
     run_command_and_stop 'git push'
-    run_command_and_stop 'bundle install --quiet'
 
     run_ed 'deploy production -r example_tag'
 

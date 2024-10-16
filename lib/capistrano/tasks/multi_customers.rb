@@ -1,7 +1,10 @@
 namespace :epi_deploy do
   task :symlink_customer_configs do
     on release_roles :all  do
-      execute :ln, '-s', release_path.join("config/customers/customer_settings/#{fetch(:current_customer)}.yml"), release_path.join("config/customer_settings.yml")
+      customer_settings_path = release_path.join("config/customers/customer_settings/#{fetch(:current_customer)}.yml")
+      if test("[ -f #{customer_settings_path}]")
+        execute :ln, '-s', customer_settings_path, release_path.join("config/customer_settings.yml")
+      end
     end
   end
 end
