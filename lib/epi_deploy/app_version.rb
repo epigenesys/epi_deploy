@@ -42,11 +42,11 @@ module EpiDeploy
       end
       
       def extract_version_number(contents)
-        contents.match(/APP_VERSION = '(?<version>\d+).*'/)[:version].to_i
+        contents.match(/APP_VERSION\s*=\s*'(?<version>\d+).*'/)[:version].to_i
       end
 
       def extract_latest_release_tag(contents)
-        if (match = contents.match(/LATEST_RELEASE_TAG = '(?<tag>[A-Za-z0-9_-]+)'/))
+        if (match = contents.match(/LATEST_RELEASE_TAG\s*=\s*'(?<tag>[A-Za-z0-9_-]+)'/))
           match[:tag]
         else
           ''
