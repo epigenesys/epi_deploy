@@ -82,7 +82,7 @@ module EpiDeploy
     end
 
     def force_create_branch(name, commit)
-      run_custom_command("git branch -f refs/heads/#{name} #{commit}")
+      run_custom_command("git branch -f #{name} #{commit}")
     end
 
     def local_branches(branch_names = [])

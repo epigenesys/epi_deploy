@@ -23,7 +23,7 @@ describe EpiDeploy::GitWrapper do
 
   describe '#create_or_update_branch' do
     it 'creates or moves the branch to the commit' do
-      expect(Kernel).to receive(:system).with("git branch -f refs/heads/production #{commit}").and_return(true)
+      expect(Kernel).to receive(:system).with("git branch -f production #{commit}").and_return(true)
       expect(mocked_git).to receive(:push).with('origin', 'refs/heads/production', force: true, tags: false
 )
       subject.create_or_update_branch('production', commit)
