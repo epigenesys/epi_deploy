@@ -81,7 +81,7 @@ module EpiDeploy
 
       def tag_name_for_stage(stage)
         timestamp = Time.now.strftime('%Y_%m_%d-%H_%M_%S')
-        "#{stage}-#{timestamp}"
+        "deploy-#{stage}-#{timestamp}"
       end
 
       def run_cap_deploy_to(environment)

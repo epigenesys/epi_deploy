@@ -25,8 +25,8 @@ end
 
 def deployment_stage_with_timestamp(stage)
   satisfy do |tag_name|
-    tag_stage, timestamp = tag_name.split('-', 2)
-    tag_stage == stage && (Time.now - Time.strptime(timestamp, '%Y_%m_%d-%H_%M_%S') <= 5)
+    deploy_prefix, tag_stage, timestamp = tag_name.split('-', 3)
+    deploy_prefix == 'deploy' && tag_stage == stage && (Time.now - Time.strptime(timestamp, '%Y_%m_%d-%H_%M_%S') <= 5)
   end
 end
 

@@ -110,7 +110,7 @@ You can also deploy to all customers for a given environment by running e.g. `ca
 
 Using branches for stages, i.e. demo and production branches, can clutter up your branches screen. This can be particularly awkward when running CI and keeping track of multiple active branches. To resolve this you can optionally configure epi_deploy to use tags for this instead of branches.
 
-Tags will be automatically created for each successful deployment with the format `environment.stage-timestamp`, for example `production.epigenesys-2024_10_03-12_20_09`, and pushed to the remote.
+Tags will be automatically created for each successful deployment with the format `deploy-<environment>.<stage>-<timestamp>`, for example `deploy-production.epigenesys-2024_10_03-12_20_09`, and pushed to the remote.
 
 1. Change the line in your Gemfile to this, to ensure that you have version 2.3 or greater.
 
