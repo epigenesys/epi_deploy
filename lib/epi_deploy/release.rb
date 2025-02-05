@@ -17,13 +17,21 @@ module EpiDeploy
       begin
         git_wrapper.pull
 
-        new_version = app_version.bump!
-        git_wrapper.add(app_version.version_file_path)
-        git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
+        if git_wrapper.most_recent_commit.message.start_with? 'Bumped to version'
+          false
+        else
+          new_version = app_version.bump
+          self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
+          app_version.latest_release_tag = self.tag
+          app_version.save!
+          git_wrapper.add(app_version.version_file_path)
+          git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
 
-        self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
-        git_wrapper.tag self.tag
-        git_wrapper.push git_wrapper.current_branch
+          git_wrapper.create_or_update_tag(self.tag, push: false)
+          git_wrapper.push(git_wrapper.current_branch, tags: true)
+
+          true
+        end
       rescue ::Git::GitExecuteError => e
         print_failure_and_abort "A git error occurred: #{e.message}"
       end
@@ -33,28 +41,10 @@ module EpiDeploy
       app_version.version
     end
 
-    def deploy!(environments)
-      environments.each do |environment|
-        begin
-          git_wrapper.pull
-
-          matches = environment.match(/\A(?<stage>[\w\-]+)(?:\.(?<customer>\w+))?\z/)
-          
-          # Force the tag/branch to the commit we want to deploy
-          git_wrapper.update_stage_tag_or_branch(matches[:stage], commit)
-
-          completed = run_cap_deploy_to(environment)
-          if !completed
-            print_failure_and_abort "Deployment failed - please review output before deploying again"
-          end
-        rescue ::Git::GitExecuteError => e
-          print_failure_and_abort "A git error occurred: #{e.message}"
-        end
+    def release_tags_list
+      git_wrapper.tag_list.filter do |tag|
+        tag.match?(/\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/)
       end
-    end
-
-    def tag_list(options = nil)
-      git_wrapper.tag_list(options)
     end
 
     def git_wrapper(klass = EpiDeploy::GitWrapper)
@@ -63,7 +53,7 @@ module EpiDeploy
 
     def self.find(reference)
       release = self.new
-      commit = release.git_wrapper.get_commit(reference)
+      commit = release.send(:get_commit, reference)
       print_failure_and_abort("Cannot find commit for reference '#{reference}'") if commit.nil?
       release.commit = commit
       release.reference = reference
@@ -73,7 +63,7 @@ module EpiDeploy
     private
 
       def app_version(app_version_class = EpiDeploy::AppVersion)
-        @app_version ||= app_version_class.new
+        @app_version ||= app_version_class.open
       end
 
       # Use Time.zone if we have it (i.e. Rails), otherwise use Time
@@ -82,20 +72,13 @@ module EpiDeploy
         time.strftime "%Y#{MONTHS[time.month - 1]}%d-%H%M"
       end
 
-      def run_cap_deploy_to(environment)
-        $stdout.puts "Deploying to #{environment}... "
-
-        task_to_run = if stages_extractor.multi_customer_stage?(environment)
-          "deploy_all"
-        else
-          "deploy"
+      def get_commit(git_reference)
+        if git_reference == :latest
+          print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if self.release_tags_list.empty?
+          git_reference = release_tags_list.first
         end
-
-        Kernel.system "bundle exec cap #{environment} #{task_to_run} target=#{reference}"
-      end
-
-      def stages_extractor
-        @stages_extractor ||= StagesExtractor.new
+  
+        git_wrapper.git_object_for(git_reference)
       end
 
   end

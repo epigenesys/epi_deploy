@@ -15,12 +15,13 @@ module EpiDeploy
       self.release_class = release_class
     end
 
-    def release(setup_class = EpiDeploy::Setup)
-      setup_class.initial_setup_if_required
-      
+    def release
       release = self.release_class.new
-      release.create!
-      print_success "Release #{release.version} created with tag #{release.tag}"
+      if release.create!
+        print_success "Release #{release.version} created with tag #{release.tag}"
+      else
+        print_notice "Release #{release.version} has already been created on the most recent commit"
+      end
       environments = self.options.to_hash[:deploy]
       self.deploy(environments) unless environments.nil?
     end
@@ -32,7 +33,8 @@ module EpiDeploy
       if release.nil?
         print_failure_and_abort "You did not enter a valid Git reference. Please try again."
       else
-        if release.deploy!(environments)
+        deployer = Deployer.new(release)
+        if deployer.deploy!(environments)
           print_success "Deployment complete."
         else
           print_failure_and_abort "An error occurred."
@@ -47,7 +49,7 @@ module EpiDeploy
         print_notice "Select a recent release (or just press enter for latest):"
         
         tag_list = {}
-        self.release_class.new.tag_list.each_with_index do |release, i|
+        self.release_class.new.release_tags_list.each_with_index do |release, i|
           number = i + 1
           tag_list[number.to_s] = release
           print_notice "#{number}: #{release}"

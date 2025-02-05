@@ -23,8 +23,9 @@ module EpiDeploy
       git.commit_all message
     end
 
-    def push(branch, options = {force: false, tags: true})
-      git.push 'origin', branch, options
+    def push(branch, **options)
+      options = { force: false, tags: true }.merge(options)
+      git.push 'origin', branch, **options
     end
 
     def add(files = nil)
@@ -35,42 +36,27 @@ module EpiDeploy
       git.log.first.sha[0..6]
     end
 
-    def tag(tag_name)
-      git.add_tag(tag_name, annotate: true, message: tag_name)
-    end
-
-    def get_commit(git_reference)
-      if git_reference == :latest
-        print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if tag_list.empty?
-        git_reference = tag_list.first
+    def create_or_update_tag(name, commit = nil, push: true)
+      if push
+        git.push('origin', "refs/tags/#{name}", delete: true)
       end
 
-      git_object_type = git.lib.object_type(git_reference)
+      git.add_tag(name, commit, annotate: true, f: true, message: name)
 
-      case git_object_type
-        when 'tag'    then git.tag(git_reference)
-        when 'commit' then git.object(git_reference)
-        else nil
+      if push
+        git.push('origin', "refs/tags/#{name}")
       end
     end
 
-    def update_stage_tag_or_branch(stage, commit)
-      if EpiDeploy.use_tags_for_deploy
-        update_tag_commit(stage, commit)
-      else
-        update_branch_commit(stage, commit)
-      end
+    def create_or_update_branch(name, commit)
+      force_create_branch(name, commit)
+      self.push "refs/heads/#{name}", force: true, tags: false
     end
 
-    def update_branch_commit(stage, commit)
-      Kernel.system "git branch -f #{stage} #{commit}"
-      self.push stage, force: true, tags: true
-    end
-
-    def update_tag_commit(stage, commit)
-      Kernel.system "git push origin :refs/tags/#{stage}"
-      git.add_tag(stage, commit, annotate: true, f: true, message: stage)
-      Kernel.system "git push origin --tags"
+    def delete_branches(branches)
+      remote_refs = branches.map { |branch| "refs/heads/#{branch}" }
+      run_custom_command("git push origin #{remote_refs.join(' ')} --delete")
+      local_branches(branches).each(&:delete)
     end
 
     def tag_list
@@ -81,11 +67,37 @@ module EpiDeploy
       git.current_branch
     end
 
+    def most_recent_commit
+      git.log(1).first
+    end
+
+    def git_object_for(ref)
+      git.object(commit_hash_for(ref))
+    end
+
     private
 
     def git
       @git ||= ::Git.open(Dir.pwd)
     end
 
+    def force_create_branch(name, commit)
+      run_custom_command("git branch -f #{name} #{commit}")
+    end
+
+    def local_branches(branch_names = [])
+      branches = git.branches.local.filter { |branch| branch_names.include? branch.name }
+      branches || []
+    end
+
+    def run_custom_command(command)
+      unless Kernel.system(command)
+        raise ::Git::GitExecuteError.new("Failed to run command '#{command}'")
+      end
+    end
+
+    def commit_hash_for(ref)
+      `git rev-list -n1 #{ref}`.strip
+    end
   end
 end

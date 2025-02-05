@@ -12,14 +12,23 @@ This gem provides a convenient interface for creating releases and deploying usi
 
 ## Installation
 
+At the top of your application's `Gemfile` add this line if it does not already exist:
+
+```sh
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+```
+
 Add this line to your application's Gemfile:
 
-    gem 'epi_deploy', github: 'epigenesys/epi_deploy'
+```rb
+gem 'epi_deploy', github: 'epigenesys/epi_deploy'
+```
 
 And then execute:
 
-    $ bundle install
-
+```sh
+$ bundle install
+```
 
 ## Usage
 
@@ -101,10 +110,41 @@ You can also deploy to all customers for a given environment by running e.g. `ca
 
 Using branches for stages, i.e. demo and production branches, can clutter up your branches screen. This can be particularly awkward when running CI and keeping track of multiple active branches. To resolve this you can optionally configure epi_deploy to use tags for this instead of branches.
 
-1. Update to epi_deploy 2.2.0 or greater.
-2. Add config/epi_deploy.rb to your application.
-3. Add `EpiDeploy.use_tags_for_deploy = true` to the newly created config file.
-4. Delete your stage branches on gitlab (likely `production`, `demo`, `qa`).
-5. Push your changes and deploy to a demo site to test it is working correctly.
+Tags will be automatically created for each successful deployment with the format `deploy-<environment>.<stage>-<timestamp>`, for example `deploy-production.epigenesys-2024_10_03-12_20_09`, and pushed to the remote.
 
-Note: In the future we intend to change this configuration option to default to true.
+1. Change the line in your Gemfile to this, to ensure that you have version 2.3 or greater.
+
+   ```rb
+   gem 'epi_deploy', '>= 2.3', github: 'epigenesys/epi_deploy'
+   ```
+
+1. Update epi_deploy in your application's gems
+
+   ```sh
+   bundle update epi_deploy
+   ```
+
+1. Create a file called `config/epi_deploy.rb` if it does not already exist, with this configuration option:
+
+   ```rb
+   EpiDeploy.use_timestamped_deploy_tags = true
+   ```
+
+1. If it hasn't be added already, add this line to `Capfile`
+
+   ```rb
+   require 'capistrano/epi_deploy'
+   ```
+
+1. Commit and push your changes, then deploy to a demo site to test it is working correctly.
+
+If you've previously used the `use_tags_for_deploy` configuration option, then this has now been removed since v2.3. If you upgrade to v2.3, then you should remove the old deployment tags manually from your local repo and remotely by doing, e.g.
+
+```sh
+git tag --delete production demo
+git push origin --delete production demo
+```
+
+and remove the old `EpiDeploy.use_tags_for_deploy` from your application's `config/epi_deploy.rb` file.
+
+You can then use the deployment branches (the default behaviour) or the new tags for deployment.
