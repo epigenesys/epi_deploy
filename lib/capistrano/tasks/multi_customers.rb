@@ -1,9 +1,12 @@
 namespace :epi_deploy do
   task :symlink_customer_configs do
     on release_roles :all  do
-      customer_settings_path = release_path.join("config/customers/customer_settings/#{fetch(:current_customer)}.yml")
-      if test("[ -f #{customer_settings_path}]")
+      customer_settings_file = "config/customers/customer_settings/#{fetch(:current_customer)}.yml"
+      customer_settings_path = release_path.join(customer_settings_file)
+      if test("[ -f '#{customer_settings_path}' ]")
         execute :ln, '-s', customer_settings_path, release_path.join("config/customer_settings.yml")
+      else
+        warn "Not symlinking customer configuration as #{customer_settings_file} not found"
       end
     end
   end
