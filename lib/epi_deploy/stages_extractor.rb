@@ -44,12 +44,23 @@ module EpiDeploy
     def stages_for_stage_or_environment(stage_or_environment)
       if @environment_to_stages.has_key? stage_or_environment
         # Environment
-        @environment_to_stages[stage_or_environment]
+        @environment_to_stages[stage_or_environment].to_a
       elsif self.all_stages.include? stage_or_environment
         # Stage
         [stage_or_environment]
       else
         []
+      end
+    end
+
+    # stages are sorted lexicographically within each stage or environment passed
+    def each_stage(stages_or_environments)
+      stages = stages_or_environments.flat_map do |stage_or_environment|
+        stages_for_stage_or_environment(stage_or_environment).sort
+      end
+
+      stages.each do |stage|
+        yield stage
       end
     end
 

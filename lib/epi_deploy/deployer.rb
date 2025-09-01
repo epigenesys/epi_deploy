@@ -32,17 +32,14 @@ module EpiDeploy
         print_notice 'Removing any legacy deployment branches'
         git_wrapper.delete_branches(stages_extractor.environments)
 
-        stages_or_environments.each do |stage_or_environment|
-          stages_extractor.stages_for_stage_or_environment(stage_or_environment).each do |stage|
+        stages_extractor.each_stage(stages_or_environments) do |stage|
+          completed = run_cap_deploy_to(stage)
+          if completed
             tag_name = tag_name_for_stage(stage)
-
-            completed = run_cap_deploy_to(stage)
-            if completed
-              git_wrapper.create_or_update_tag(tag_name, @release.commit)
-              print_success "Created deployment tag #{tag_name} on commit #{@release.commit}"
-            else
-              print_failure_and_abort "Deployment failed - please review output before deploying again"
-            end
+            git_wrapper.create_or_update_tag(tag_name, @release.commit)
+            print_success "Created deployment tag #{tag_name} on commit #{@release.commit}"
+          else
+            print_failure_and_abort "Deployment failed - please review output before deploying again"
           end
         end
       end
@@ -50,18 +47,18 @@ module EpiDeploy
       def deploy_with_environment_branches(stages_or_environments)
         updated_branches = Set.new
 
-        stages_or_environments.each do |stage_or_environment|
-          begin
-            git_wrapper.pull
+        git_wrapper.pull
 
-            matches = StagesExtractor.match_with(stage_or_environment)
+        stages_extractor.each_stage(stages_or_environments) do |stage|
+          begin
+            matches = StagesExtractor.match_with(stage)
             # Force the tag/branch to the commit we want to deploy
             unless updated_branches.include? matches[:stage]
               git_wrapper.create_or_update_branch(matches[:stage], @release.commit)
               updated_branches << matches[:stage]
             end
 
-            completed = run_cap_deploy_to(stage_or_environment)
+            completed = run_cap_deploy_to(stage)
             if !completed
               print_failure_and_abort "Deployment failed - please review output before deploying again"
             end
@@ -84,16 +81,9 @@ module EpiDeploy
         "deploy-#{stage}-#{timestamp}"
       end
 
-      def run_cap_deploy_to(environment)
-        print_notice "Deploying to #{environment}... "
-
-        task_to_run = if stages_extractor.multi_customer_stage?(environment)
-          "deploy_all"
-        else
-          "deploy"
-        end
-
-        Kernel.system "BRANCH=#{@release.commit} bundle exec cap #{environment} #{task_to_run}"
+      def run_cap_deploy_to(stage)
+        print_notice "Deploying to #{stage}... "
+        Kernel.system "BRANCH=#{@release.commit} bundle exec cap #{stage} deploy"
       end
   end
 end

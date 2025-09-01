@@ -119,8 +119,9 @@ RSpec.describe EpiDeploy::Deployer do
         end.to_not raise_error
       end
 
-      it 'runs the capistrano deploy_all task for multi-customer environments' do
-        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production deploy_all").and_return(true)
+      it 'runs the capistrano deploy task for each stage for multi-customer environments' do
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.epigenesys deploy").and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.genesys deploy").and_return(true)
 
         expect do
           subject.deploy! %w(production)
