@@ -47,6 +47,10 @@ module EpiDeploy
       end
     end
 
+    def has_ancestor?(reference)
+      git_wrapper.ancestor?(reference, of: commit)
+    end
+
     def git_wrapper(klass = EpiDeploy::GitWrapper)
       @git_wrapper ||= klass.new
     end

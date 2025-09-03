@@ -121,4 +121,29 @@ describe EpiDeploy::GitWrapper do
       end
     end
   end
+
+  describe '#ancestor?' do
+    let(:reference) { '275cf7e295b879a62526b13b4fb78e7b04935fe1' }
+    let(:of) { 'ae4ff8053b6beb3a9e57b8c4d59038edf7d4c8f9' }
+
+    context 'if the command exits with a status code of 0' do
+      before do
+        allow(subject).to receive(:system).with("git merge-base #{reference} #{of} --is-ancestor").and_return(true)
+      end
+
+      specify 'it returns true' do
+        expect(subject).to be_ancestor reference, of: of
+      end
+    end
+
+    context 'if the command exits with a status code of 0' do
+      before do
+        allow(subject).to receive(:system).with("git merge-base #{reference} #{of} --is-ancestor").and_return(false)
+      end
+
+      specify 'it returns false' do
+        expect(subject).to_not be_ancestor reference, of: of
+      end
+    end
+  end
 end

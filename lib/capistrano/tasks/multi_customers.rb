@@ -33,7 +33,11 @@ namespace :deploy do
   task :revision do
     on roles :app do |host|
       within current_path do
-        info "#{fetch(:user)}@#{host}: #{capture :cat, 'REVISION'}"
+        if test "[ -f REVISION ]"
+          info "#{fetch(:user)}@#{host}: #{capture :cat, 'REVISION'}"
+        else
+          info "#{fetch(:user)}@#{host}: REVISION file not found"
+        end
       end
     end
   end
