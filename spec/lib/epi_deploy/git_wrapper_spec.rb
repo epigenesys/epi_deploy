@@ -132,7 +132,7 @@ describe EpiDeploy::GitWrapper do
       end
 
       specify 'it returns true' do
-        expect(subject).to be_ancestor reference, of:
+        expect(subject).to be_ancestor reference, of: of
       end
     end
 
@@ -142,7 +142,7 @@ describe EpiDeploy::GitWrapper do
       end
 
       specify 'it returns false' do
-        expect(subject).to_not be_ancestor reference, of:
+        expect(subject).to_not be_ancestor reference, of: of
       end
     end
   end
