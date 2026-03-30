@@ -27,6 +27,7 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
+        bundler: '2.7.2'
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Set Git name
       run: git config --global user.name "GitHub CI"
