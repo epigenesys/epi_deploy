@@ -92,8 +92,16 @@ module EpiDeploy
         else
           "deploy"
         end
+        cmd = "BRANCH=#{@release.commit} ED_REF=#{@release.reference} bundle exec cap #{environment} #{task_to_run}"
 
-        Kernel.system "BRANCH=#{@release.commit} ED_REF=#{@release.reference} bundle exec cap #{environment} #{task_to_run}"
+        success = Kernel.system cmd
+        print_notice ''
+
+        exit_code = $?.to_i
+        if !success || exit_code != 0
+          print_error "Capistrano exited with exit code #{exit_code}"
+        end
+        success
       end
   end
 end

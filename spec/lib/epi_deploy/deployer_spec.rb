@@ -43,7 +43,7 @@ RSpec.describe EpiDeploy::Deployer do
 
   describe "#deploy!" do
     before do
-      allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_notice: nil, print_success: nil)
+      allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_error: nil, print_notice: nil, print_success: nil)
       allow_any_instance_of(EpiDeploy::Helpers).to receive(:print_failure_and_abort) { raise system_exit }
     end
 
