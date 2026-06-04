@@ -9,4 +9,5 @@ group :development do
   gem 'byebug'
 
   gem 'capistrano', '~> 3.6'
+  gem "epi-rubocop", require: false, group: :development, git: "https://github.com/epigenesys/epi-rubocop.git"
 end
