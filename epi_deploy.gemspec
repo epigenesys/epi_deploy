@@ -21,4 +21,9 @@ Gem::Specification.new do |gem|
   gem.add_dependency('bundler', '>= 2.5.23')
   gem.add_dependency('git',     '~> 1.5')
   gem.add_dependency('slop',    '~> 3.6')
+
+  gem.add_development_dependency "rspec", "~> 3.1"
+  gem.add_development_dependency "aruba", "~> 1.0.0"
+  gem.add_development_dependency "byebug", "~> 13.0"
+  gem.add_development_dependency "capistrano", "~> 3.6"
 end
