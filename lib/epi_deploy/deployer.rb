@@ -2,6 +2,8 @@ require "git"
 
 require_relative "helpers"
 require_relative "stages_extractor"
+require_relative "git_wrapper"
+require_relative "config"
 
 module EpiDeploy
   class Deployer

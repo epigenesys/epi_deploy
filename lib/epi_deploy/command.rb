@@ -1,4 +1,8 @@
-Dir[File.join(File.dirname(__FILE__), "*.rb")].each { |f| require_relative f }
+require "slop"
+
+require_relative "release"
+require_relative "deployer"
+require_relative "stages_extractor"
 
 module EpiDeploy
   class Command

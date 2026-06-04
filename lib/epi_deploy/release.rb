@@ -1,5 +1,8 @@
-require_relative "./helpers"
 require "git"
+
+require_relative "helpers"
+require_relative "git_wrapper"
+require_relative "app_version"
 
 module EpiDeploy
   class Release
