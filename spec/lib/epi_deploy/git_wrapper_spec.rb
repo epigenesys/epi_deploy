@@ -3,11 +3,11 @@ require 'epi_deploy/config'
 require 'epi_deploy/git_wrapper'
 
 describe EpiDeploy::GitWrapper do
-
   let(:mocked_git) { double(:git, current_branch: current_branch, add_tag: true, push: true) }
   let(:commit) { 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b' }
   let(:current_branch) { 'main' }
-  before(:each) do
+
+  before do
     allow(subject).to receive(:git).and_return(mocked_git)
   end
 
@@ -38,7 +38,7 @@ describe EpiDeploy::GitWrapper do
         expect(subject).to be_on_primary_branch
       end
     end
-    
+
     context 'When the current branch is master' do
       let(:current_branch) { 'master' }
 
@@ -51,10 +51,9 @@ describe EpiDeploy::GitWrapper do
       let(:current_branch) { 'feature/cool-feature-branch' }
 
       specify 'Then it returns false' do
-        expect(subject).to_not be_on_primary_branch
+        expect(subject).not_to be_on_primary_branch
       end
     end
-
   end
 
   describe '#current_branch' do
@@ -102,7 +101,7 @@ describe EpiDeploy::GitWrapper do
     context 'if not all the branches exist as local branches' do
       let(:production_branch) { double('production branch') }
       let(:demo_branch) { double('demo branch') }
-      let(:local_branches) { [production_branch ] }
+      let(:local_branches) { [production_branch] }
 
       specify 'it deletes each branch from the remote' do
         allow(production_branch).to receive(:delete)
@@ -115,7 +114,7 @@ describe EpiDeploy::GitWrapper do
       specify 'it deletes only the branches that exist locally' do
         allow(subject).to receive(:run_custom_command)
         expect(production_branch).to receive(:delete)
-        expect(demo_branch).to_not receive(:delete)
+        expect(demo_branch).not_to receive(:delete)
 
         subject.delete_branches(branches)
       end

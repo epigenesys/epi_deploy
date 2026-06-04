@@ -5,6 +5,7 @@ require 'epi_deploy/deployer'
 require 'spec_helper'
 
 class MockGit
+
   def initialize(on_primary_branch: true, pending_changes: false)
     @on_primary_branch = on_primary_branch
     @pending_changes = pending_changes
@@ -21,6 +22,7 @@ class MockGit
   def create_or_update_tag(name, commit); end
   def create_or_update_branch(name, commit); end
   def delete_branches(branches); end
+
 end
 
 def deployment_stage_with_timestamp(stage)
@@ -31,10 +33,11 @@ def deployment_stage_with_timestamp(stage)
 end
 
 RSpec.describe EpiDeploy::Deployer do
+  subject { described_class.new(release) }
+
   let(:release) { double('release') }
   let(:system_exit) { Exception.new('test exception') }
   let(:git_wrapper) { MockGit.new }
-  subject { described_class.new(release) }
 
   before do
     allow(release).to receive_messages(reference: 'test', commit: 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b')
@@ -64,8 +67,8 @@ RSpec.describe EpiDeploy::Deployer do
         expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.genesys deploy").and_return(true)
 
         expect do
-          subject.deploy! %w(demo production)
-        end.to_not raise_error
+          subject.deploy! %w[demo production]
+        end.not_to raise_error
       end
 
       context 'if deployment to all stages is successful' do
@@ -86,11 +89,11 @@ RSpec.describe EpiDeploy::Deployer do
         it 'only adds the tag to the deployment stages have succeeded' do
           expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.epigenesys deploy").and_return(true)
           expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.genesys deploy").and_return(false)
-          expect(Kernel).to_not receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap demo deploy")
+          expect(Kernel).not_to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap demo deploy")
 
           expect(git_wrapper).to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.epigenesys'), release.commit)
-          expect(git_wrapper).to_not receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.genesys'), release.commit)
-          expect(git_wrapper).to_not receive(:create_or_update_tag).with(deployment_stage_with_timestamp('demo'), release.commit)
+          expect(git_wrapper).not_to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('production.genesys'), release.commit)
+          expect(git_wrapper).not_to receive(:create_or_update_tag).with(deployment_stage_with_timestamp('demo'), release.commit)
 
           expect { subject.deploy! ['production.epigenesys', 'production.genesys', 'demo'] }.to raise_error system_exit
         end
@@ -115,16 +118,16 @@ RSpec.describe EpiDeploy::Deployer do
         expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap demo deploy").and_return(true)
 
         expect do
-          subject.deploy! %w(demo)
-        end.to_not raise_error
+          subject.deploy! %w[demo]
+        end.not_to raise_error
       end
 
       it 'runs the capistrano deploy_all task for multi-customer environments' do
         expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production deploy_all").and_return(true)
 
         expect do
-          subject.deploy! %w(production)
-        end.to_not raise_error
+          subject.deploy! %w[production]
+        end.not_to raise_error
       end
 
       it 'creates a branch for each deployment environment' do
@@ -135,14 +138,14 @@ RSpec.describe EpiDeploy::Deployer do
 
         expect do
           subject.deploy! ['production.epigenesys', 'production.genesys', 'demo']
-        end.to_not raise_error
+        end.not_to raise_error
       end
 
       it 'creates a branch for a deployment stage each if it does not succeed but not for subsequent environments' do
         allow(Kernel).to receive(:system).and_return(false)
 
         expect(git_wrapper).to receive(:create_or_update_branch).with('demo', release.commit)
-        expect(git_wrapper).to_not receive(:create_or_update_branch).with('production', any_args)
+        expect(git_wrapper).not_to receive(:create_or_update_branch).with('production', any_args)
 
         expect do
           subject.deploy! ['demo', 'production']

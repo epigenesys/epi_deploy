@@ -1,23 +1,23 @@
-require_relative './helpers'
-require 'git'
+require_relative "./helpers"
+require "git"
 
 module EpiDeploy
   class Release
 
     include EpiDeploy::Helpers
 
-    MONTHS = %w(jan feb mar apr may jun jul aug sep oct nov dec)
+    MONTHS = %w[jan feb mar apr may jun jul aug sep oct nov dec]
 
     attr_accessor :reference, :tag, :commit
 
     def create!
-      return print_failure_and_abort 'You can only create a release on the main or master branch. Please switch to main or master and try again.' unless git_wrapper.on_primary_branch?
-      return print_failure_and_abort 'You have pending changes, please commit or stash them and try again.'  if git_wrapper.pending_changes?
+      return print_failure_and_abort "You can only create a release on the main or master branch. Please switch to main or master and try again." unless git_wrapper.on_primary_branch?
+      return print_failure_and_abort "You have pending changes, please commit or stash them and try again."  if git_wrapper.pending_changes?
 
       begin
         git_wrapper.pull
 
-        if git_wrapper.most_recent_commit.message.start_with? 'Bumped to version'
+        if git_wrapper.most_recent_commit.message.start_with? "Bumped to version"
           false
         else
           new_version = app_version.bump
@@ -62,24 +62,24 @@ module EpiDeploy
 
     private
 
-      def app_version(app_version_class = EpiDeploy::AppVersion)
-        @app_version ||= app_version_class.open
+    def app_version(app_version_class = EpiDeploy::AppVersion)
+      @app_version ||= app_version_class.open
+    end
+
+    # Use Time.zone if we have it (i.e. Rails), otherwise use Time
+    def date_and_time_for_tag(time_class = (Time.respond_to?(:zone) ? Time.zone : Time))
+      time = time_class.now
+      time.strftime "%Y#{MONTHS[time.month - 1]}%d-%H%M"
+    end
+
+    def get_commit(git_reference)
+      if git_reference == :latest
+        print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if self.release_tags_list.empty?
+        git_reference = release_tags_list.first
       end
 
-      # Use Time.zone if we have it (i.e. Rails), otherwise use Time
-      def date_and_time_for_tag(time_class = (Time.respond_to?(:zone) ? Time.zone : Time))
-        time = time_class.now
-        time.strftime "%Y#{MONTHS[time.month - 1]}%d-%H%M"
-      end
-
-      def get_commit(git_reference)
-        if git_reference == :latest
-          print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if self.release_tags_list.empty?
-          git_reference = release_tags_list.first
-        end
-  
-        git_wrapper.git_object_for(git_reference)
-      end
+      git_wrapper.git_object_for(git_reference)
+    end
 
   end
 end

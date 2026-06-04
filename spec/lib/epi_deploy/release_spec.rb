@@ -5,6 +5,7 @@ require 'epi_deploy/stages_extractor'
 require 'epi_deploy/release'
 
 class MockGit
+
   def initialize(on_primary_branch: true, pending_changes: false)
     @on_primary_branch = on_primary_branch
     @pending_changes = pending_changes
@@ -20,12 +21,13 @@ class MockGit
   def current_branch; 'main'; end
   def create_or_update_tag(stage, commit); end
   def delete_branches(branches); end
+
 end
 
 describe EpiDeploy::Release do
-
   let(:git_wrapper) { MockGit.new }
   let(:app_version) { double(bump: 42, version_file_path: '', :latest_release_tag= => nil, save!: true) }
+
   before do
     allow(subject).to receive_messages(reference: 'test', git_wrapper: git_wrapper, commit: 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b', app_version: app_version)
     allow(git_wrapper).to receive(:most_recent_commit).and_return(double('commit', message: 'Some non-release commit'))
@@ -52,27 +54,27 @@ describe EpiDeploy::Release do
       allow(subject).to receive_messages(bump_version: nil)
       expect(git_wrapper).to receive(:pull)
 
-      expect(subject.create!).to eq true
+      expect(subject.create!).to be true
     end
 
     it "stops with a warning message when a git pull fails (eg. merge errors)" do
       allow(subject).to receive_messages(bump_version: nil)
       expect(git_wrapper).to receive(:pull)
 
-      expect(subject.create!).to eq true
+      expect(subject.create!).to be true
     end
 
     it "bumps the version number" do
       expect(app_version).to receive(:bump)
 
-      expect(subject.create!).to eq true
+      expect(subject.create!).to be true
     end
 
     it "commits the new version number" do
       allow(subject).to receive_messages bump_version: 42
       expect(git_wrapper).to receive(:commit).with('Bumped to version 42 [skip ci]')
 
-      expect(subject.create!).to eq true
+      expect(subject.create!).to be true
     end
 
     context 'given that the date and time is 2024-12-1 16:15:00' do
@@ -84,14 +86,14 @@ describe EpiDeploy::Release do
       it 'sets the latest release tag in the version the newly-created tag' do
         expect(app_version).to receive(:latest_release_tag=).with('2014dec01-1615-abc1234-v42')
 
-        expect(subject.create!).to eq true
+        expect(subject.create!).to be true
       end
 
       it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version for the new commit" do
         allow(subject).to receive_messages bump_version: 42
         expect(git_wrapper).to receive(:create_or_update_tag).with('2014dec01-1615-abc1234-v42', push: false)
 
-        expect(subject.create!).to eq true
+        expect(subject.create!).to be true
       end
     end
 
@@ -99,14 +101,14 @@ describe EpiDeploy::Release do
       allow(subject).to receive_messages bump_version: 42
       expect(git_wrapper).to receive(:push).with('main', tags: true)
 
-      expect(subject.create!).to eq true
+      expect(subject.create!).to be true
     end
 
     it 'does not create a new release if the most recent commit is a release commit' do
       allow(git_wrapper).to receive(:most_recent_commit).and_return(double('commit', message: 'Bumped to version 12 [skip ci]'))
-      expect(git_wrapper).to_not receive(:create_or_update_tag)
+      expect(git_wrapper).not_to receive(:create_or_update_tag)
 
-      expect(subject.create!).to eq false
+      expect(subject.create!).to be false
     end
   end
 end

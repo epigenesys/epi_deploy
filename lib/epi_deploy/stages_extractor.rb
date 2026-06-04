@@ -1,7 +1,8 @@
-require 'set'
+require "set"
 
 module EpiDeploy
   class StagesExtractor
+
     STAGE_REGEX = /\A(?<stage>[\w\-]+)(?:\.(?<customer>\w+))?\z/
     DEPLOY_FILE_REGEX = /\A(?<stage>[\w\-]+)(?:\.(?<customer>[\w\-]+))?\.rb\z/
 
@@ -18,7 +19,7 @@ module EpiDeploy
         end
 
         @environment_to_stages[matches[:stage]] ||= Set.new
-        @environment_to_stages[matches[:stage]] << matches[1..2].compact.join('.')
+        @environment_to_stages[matches[:stage]] << matches[1..2].compact.join(".")
       end
 
       # Remove stage with same name as environment if it's a multi-customer stage
@@ -32,11 +33,11 @@ module EpiDeploy
 
       self.all_stages = Set.new(@environment_to_stages.values.map(&:to_a).flatten)
     end
-    
+
     def multi_customer_stage?(stage)
       multi_customer_stages.include?(stage)
     end
-    
+
     def valid_stage?(stage)
       all_stages.include?(stage) || multi_customer_stage?(stage)
     end
@@ -62,11 +63,13 @@ module EpiDeploy
     end
 
     private
-      def stage_config_files
-        @stage_config_files ||= begin
-          glob_pattern = File.join(Dir.pwd, 'config', 'deploy', '*.rb')
-          Dir[glob_pattern].map { |path| File.basename(path) }
-        end
+
+    def stage_config_files
+      @stage_config_files ||= begin
+        glob_pattern = File.join(Dir.pwd, "config", "deploy", "*.rb")
+        Dir[glob_pattern].map { |path| File.basename(path) }
       end
+    end
+
   end
 end
