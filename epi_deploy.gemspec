@@ -22,4 +22,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "aruba", "~> 1.0.0"
   gem.add_development_dependency "byebug", "~> 11.0"
   gem.add_development_dependency "capistrano", "~> 3.6"
+  gem.add_development_dependency "irb", "~> 1.0"
 end
