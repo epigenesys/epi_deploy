@@ -11,6 +11,7 @@ module EpiDeploy
     include EpiDeploy::Helpers
 
     MONTHS = %w[jan feb mar apr may jun jul aug sep oct nov dec]
+    RELEASE_TAG_REGEX = /\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/
 
     attr_accessor :reference
     attr_accessor :tag
@@ -30,7 +31,7 @@ module EpiDeploy
       if EpiDeploy.create_release_commit?
         create_with_commit!
       else
-        raise "Not implemented"
+        create_without_commit!
       end
     end
 
@@ -38,10 +39,8 @@ module EpiDeploy
       app_version.version
     end
 
-    def release_tags_list
-      git_wrapper.tag_list.filter do |tag|
-        tag.match?(/\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/)
-      end
+    def release_tag_list
+      git_wrapper.release_tag_list
     end
 
     def git_wrapper
@@ -60,34 +59,52 @@ module EpiDeploy
     private
 
     def create_with_commit!
-      return print_failure_and_abort "You can only create a release on the main or master branch. Please switch to main or master and try again." unless git_wrapper.on_primary_branch?
-      return print_failure_and_abort "You have pending changes, please commit or stash them and try again."  if git_wrapper.pending_changes?
+      common_steps
 
-      begin
-        git_wrapper.pull
+      if git_wrapper.most_recent_commit.message.start_with? "Bumped to version"
+        false
+      else
+        new_version = app_version.bump
+        self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
+        app_version.latest_release_tag = self.tag
+        app_version.save!
+        git_wrapper.add(app_version.version_file_path)
+        git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
 
-        if git_wrapper.most_recent_commit.message.start_with? "Bumped to version"
-          false
-        else
-          new_version = app_version.bump
-          self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
-          app_version.latest_release_tag = self.tag
-          app_version.save!
-          git_wrapper.add(app_version.version_file_path)
-          git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
+        git_wrapper.create_or_update_tag(self.tag, push: false)
+        git_wrapper.push(git_wrapper.current_branch, tags: true)
 
-          git_wrapper.create_or_update_tag(self.tag, push: false)
-          git_wrapper.push(git_wrapper.current_branch, tags: true)
-
-          true
-        end
-      rescue ::Git::GitExecuteError => e
-        print_failure_and_abort "A git error occurred: #{e.message}"
+        true
       end
+    rescue ::Git::GitExecuteError => e
+      print_failure_and_abort "A git error occurred: #{e.message}"
+    end
+
+    def create_without_commit!
+      common_steps
+
+      false if most_recent_commit_already_tagged?
+
+    rescue ::Git::GitExecuteError => e
+      print_failure_and_abort "A git error occurred: #{e.message}"
+    end
+
+    def common_steps
+      prerelease_checks
+      git_wrapper.pull
+    end
+
+    def prerelease_checks
+      print_failure_and_abort "You can only create a release on the main or master branch. Please switch to main or master and try again." unless git_wrapper.on_primary_branch?
+      print_failure_and_abort "You have pending changes, please commit or stash them and try again." if git_wrapper.pending_changes?
     end
 
     def app_version
       @app_version ||= AppVersion.open
+    end
+
+    def most_recent_commit_already_tagged?
+      git_wrapper.git_object_for(git_wrapper.most_recent_release_tag) == git_wrapper.most_recent_commit
     end
 
     # Use Time.zone if we have it (i.e. Rails), otherwise use Time
@@ -98,8 +115,8 @@ module EpiDeploy
 
     def get_commit(git_reference)
       if git_reference == :latest
-        print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if self.release_tags_list.empty?
-        git_reference = release_tags_list.first
+        git_reference = git_wrapper.most_recent_release_tag
+        print_failure_and_abort("There is no latest release. Create one, or specify a reference with --ref") if git_reference.nil?
       end
 
       git_wrapper.git_object_for(git_reference)

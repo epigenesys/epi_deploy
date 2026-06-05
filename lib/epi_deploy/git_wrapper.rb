@@ -60,8 +60,17 @@ module EpiDeploy
       local_branches(branches).each(&:delete)
     end
 
+    # Returns a list of all annotated tags sorted by the date which the tag was created, newest first
     def tag_list
-      @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.gsub("'", "").split.reverse
+      @tag_list ||= `git tag --list --sort=taggerdate --format='%(tag)'`.split.reverse
+    end
+
+    def release_tag_list
+      @release_tag_list ||= tag_list.filter { |tag| tag.match? Release::RELEASE_TAG_REGEX }
+    end
+
+    def most_recent_release_tag
+      release_tag_list.first
     end
 
     def current_branch
