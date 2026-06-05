@@ -1,3 +1,6 @@
+require 'spec_helper'
+require 'support/aruba_helper'
+
 require 'time'
 
 require 'epi_deploy/deployer'

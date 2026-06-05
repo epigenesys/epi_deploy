@@ -21,6 +21,7 @@ class MockGit
   def current_branch; 'main'; end
   def create_or_update_tag(stage, commit); end
   def delete_branches(branches); end
+  def most_recent_commit; end
 
 end
 
@@ -51,14 +52,12 @@ describe EpiDeploy::Release do
     end
 
     it "performs a git pull to ensure code is the latest" do
-      allow(subject).to receive_messages(bump_version: nil)
       expect(git_wrapper).to receive(:pull)
 
       expect(subject.create!).to be true
     end
 
     it "stops with a warning message when a git pull fails (eg. merge errors)" do
-      allow(subject).to receive_messages(bump_version: nil)
       expect(git_wrapper).to receive(:pull)
 
       expect(subject.create!).to be true
@@ -71,7 +70,6 @@ describe EpiDeploy::Release do
     end
 
     it "commits the new version number" do
-      allow(subject).to receive_messages bump_version: 42
       expect(git_wrapper).to receive(:commit).with('Bumped to version 42 [skip ci]')
 
       expect(subject.create!).to be true
@@ -90,7 +88,6 @@ describe EpiDeploy::Release do
       end
 
       it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version for the new commit" do
-        allow(subject).to receive_messages bump_version: 42
         expect(git_wrapper).to receive(:create_or_update_tag).with('2014dec01-1615-abc1234-v42', push: false)
 
         expect(subject.create!).to be true
@@ -98,7 +95,6 @@ describe EpiDeploy::Release do
     end
 
     it "pushes the new version to primary branch to reduce the chance of version number collisions" do
-      allow(subject).to receive_messages bump_version: 42
       expect(git_wrapper).to receive(:push).with('main', tags: true)
 
       expect(subject.create!).to be true

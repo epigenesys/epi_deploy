@@ -3,6 +3,7 @@ require 'support/aruba_helper'
 
 require 'epi_deploy/command'
 require 'epi_deploy/deployer'
+
 require 'slop'
 
 class MockOptions
@@ -37,14 +38,15 @@ describe "Command" do
     allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_notice: nil, print_success: nil, print_failure_and_abort: nil)
   end
 
-  let(:options) { MockOptions.new }
-  let(:args)    { [] }
+  let(:options) { double(to_hash: {}) }
+  let(:args) { [] }
 
   describe "release" do
     subject { EpiDeploy::Command.new options, args, MockRelease }
 
     specify "the user is notified of success" do
       expect(subject).to receive_messages(print_success: "Release v5 created with tag nice-taggy")
+
       subject.release
     end
 
@@ -110,10 +112,7 @@ describe "Command" do
     describe "optional --ref flag" do
       subject { EpiDeploy::Command.new options, ['production'], MockRelease }
 
-      let(:options) do
-        options = Hash.new
-        options
-      end
+      let(:options) { double }
 
       before do
         allow(options).to receive_messages(ref?: true)
@@ -126,19 +125,19 @@ describe "Command" do
       end
 
       specify "if flag supplied with no argument then list of releases displayed with choice" do
-        options[:ref] = nil
+        allow(options).to receive(:[]).with(:ref).and_return(nil)
         expect(subject).to receive(:prompt_for_a_release)
         subject.deploy
       end
 
       it "can be supplied with a git reference" do
-        options[:ref] = 'an_exisiting_ref'
+        allow(options).to receive(:[]).with(:ref).and_return("an_exisiting_ref")
         expect(subject.release_class).to receive(:find).with('an_exisiting_ref').and_return(MockRelease.new)
         subject.deploy
       end
 
       it "errors if the reference not exist" do
-        options[:ref] = 'invalid_ref'
+        allow(options).to receive(:[]).with(:ref).and_return("invalid_ref")
         allow(MockRelease).to receive_messages(find: nil)
         expect(subject).to receive(:print_failure_and_abort).with("You did not enter a valid Git reference. Please try again.")
         subject.deploy
