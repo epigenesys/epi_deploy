@@ -2,8 +2,6 @@ require 'time'
 
 require 'epi_deploy/deployer'
 
-require 'spec_helper'
-
 class MockGit
 
   def initialize(on_primary_branch: true, pending_changes: false)
@@ -44,15 +42,15 @@ RSpec.describe EpiDeploy::Deployer do
     allow(subject).to receive_messages(git_wrapper: git_wrapper)
   end
 
-  describe "#deploy!" do
+  describe "#deploy!", type: :aruba do
     before do
       allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_error: nil, print_notice: nil, print_success: nil)
       allow_any_instance_of(EpiDeploy::Helpers).to receive(:print_failure_and_abort) { raise system_exit }
     end
 
     around do |example|
-      Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
-        example.run
+      in_current_directory do
+        example.call
       end
     end
 

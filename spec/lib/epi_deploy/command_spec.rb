@@ -1,4 +1,6 @@
 require 'spec_helper'
+require 'support/aruba_helper'
+
 require 'epi_deploy/command'
 require 'epi_deploy/deployer'
 require 'slop'
@@ -66,7 +68,7 @@ describe "Command" do
     end
   end
 
-  describe "deploy" do
+  describe "deploy", type: :aruba do
     subject { EpiDeploy::Command.new options, args, MockRelease }
 
     before do
@@ -75,7 +77,7 @@ describe "Command" do
     end
 
     around do |example|
-      Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
+      in_current_directory do
         example.call
       end
     end

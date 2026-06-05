@@ -1,9 +1,8 @@
 require 'spec_helper'
 require 'support/aruba_helper'
 
-describe "Release" do
+describe "Release", type: :aruba do
   it "creates a new release" do
-    setup_aruba_and_git
     run_command_and_stop 'bundle install --quiet'
 
     run_ed "release"
@@ -14,7 +13,6 @@ describe "Release" do
   end
 
   it "deploys the release if the flag is supplied" do
-    setup_aruba_and_git
     run_command_and_stop 'git tag -a example_tag -m "For testing"'  # Create a pretend release
     run_command_and_stop 'git push'
     run_command_and_stop 'bundle install --quiet'
@@ -27,7 +25,6 @@ describe "Release" do
   end
 
   it 'does not deploy a second environment if the first environment deployment fails' do
-    setup_aruba_and_git
     run_command_and_stop 'git tag -a example_tag -m "For testing"'  # Create a pretend release
     run_command_and_stop 'git push --tags'
     run_command_and_stop 'bundle install --quiet'

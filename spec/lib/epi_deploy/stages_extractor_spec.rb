@@ -1,10 +1,12 @@
 require 'spec_helper'
+require 'support/aruba_helper'
+
 require 'epi_deploy/stages_extractor'
 
-describe EpiDeploy::StagesExtractor do
-  subject do
-    Dir.chdir(File.join(File.dirname(__FILE__), '../..', 'fixtures')) do
-      described_class.new
+describe EpiDeploy::StagesExtractor, type: :aruba do
+  around do |example|
+    in_current_directory do
+      example.call
     end
   end
 
