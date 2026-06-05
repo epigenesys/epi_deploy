@@ -7,6 +7,8 @@ def setup_aruba_and_git
 
   g = Git.init(local_repo)
   g.config("push.autoSetupRemote", "true")
+  g.config("user.name", "epiDeploy Test Account")
+  g.config("user.email", "epi_deploy@example.test")
   g.add
   g.commit('initial commit')
 
