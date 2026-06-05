@@ -1,0 +1,22 @@
+name: Setup
+description: Performs common setup steps
+inputs:
+  ruby-version:
+    description: Ruby version to ues
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version:
+        bundler: "2.5.23"
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: Set Git name
+      shell: sh
+      run: git config --global user.name "GitHub CI"
+    - name: Set Git email
+      shell: sh
+      run: git config --global user.email "github-ci@epigenesys.org.uk"
