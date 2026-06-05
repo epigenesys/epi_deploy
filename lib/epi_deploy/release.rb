@@ -3,6 +3,7 @@ require "git"
 require_relative "helpers"
 require_relative "git_wrapper"
 require_relative "app_version"
+require_relative "config"
 
 module EpiDeploy
   class Release
@@ -11,9 +12,54 @@ module EpiDeploy
 
     MONTHS = %w[jan feb mar apr may jun jul aug sep oct nov dec]
 
-    attr_accessor :reference, :tag, :commit
+    attr_accessor :reference
+    attr_accessor :tag
+    attr_accessor :commit
+    attr_writer :git_wrapper
+    attr_writer :app_version
+
+    def initialize(reference: nil, tag: nil, commit: nil, git_wrapper: nil, app_version: nil)
+      self.reference = reference
+      self.tag = tag
+      self.commit = commit
+      self.git_wrapper = git_wrapper
+      self.app_version = app_version
+    end
 
     def create!
+      if EpiDeploy.create_release_commit?
+        create_with_commit!
+      else
+        raise "Not implemented"
+      end
+    end
+
+    def version
+      app_version.version
+    end
+
+    def release_tags_list
+      git_wrapper.tag_list.filter do |tag|
+        tag.match?(/\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/)
+      end
+    end
+
+    def git_wrapper
+      @git_wrapper ||= GitWrapper.new
+    end
+
+    def self.find(reference)
+      release = self.new
+      commit = release.send(:get_commit, reference)
+      print_failure_and_abort("Cannot find commit for reference '#{reference}'") if commit.nil?
+      release.commit = commit
+      release.reference = reference
+      release
+    end
+
+    private
+
+    def create_with_commit!
       return print_failure_and_abort "You can only create a release on the main or master branch. Please switch to main or master and try again." unless git_wrapper.on_primary_branch?
       return print_failure_and_abort "You have pending changes, please commit or stash them and try again."  if git_wrapper.pending_changes?
 
@@ -40,33 +86,8 @@ module EpiDeploy
       end
     end
 
-    def version
-      app_version.version
-    end
-
-    def release_tags_list
-      git_wrapper.tag_list.filter do |tag|
-        tag.match?(/\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/)
-      end
-    end
-
-    def git_wrapper(klass = EpiDeploy::GitWrapper)
-      @git_wrapper ||= klass.new
-    end
-
-    def self.find(reference)
-      release = self.new
-      commit = release.send(:get_commit, reference)
-      print_failure_and_abort("Cannot find commit for reference '#{reference}'") if commit.nil?
-      release.commit = commit
-      release.reference = reference
-      release
-    end
-
-    private
-
-    def app_version(app_version_class = EpiDeploy::AppVersion)
-      @app_version ||= app_version_class.open
+    def app_version
+      @app_version ||= AppVersion.open
     end
 
     # Use Time.zone if we have it (i.e. Rails), otherwise use Time
