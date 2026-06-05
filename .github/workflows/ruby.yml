@@ -40,7 +40,7 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
         with:
-          ruby-version: ${{ matrix.ruby-version }}
+          ruby-version: 4.0
       - name: Run rubocop
         run: bundle exec rubocop
     continue-on-error: true
