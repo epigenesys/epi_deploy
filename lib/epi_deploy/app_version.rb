@@ -37,11 +37,11 @@ module EpiDeploy
       app_version
     end
 
-    private
-
     def version_file_exists?
       File.exist? version_file_path
     end
+
+    private
 
     def extract_version_number(contents)
       contents.match(/APP_VERSION\s*=\s*'(?<version>\d+).*'/)[:version].to_i

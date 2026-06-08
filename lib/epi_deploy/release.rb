@@ -31,6 +31,7 @@ module EpiDeploy
       if EpiDeploy.create_release_commit?
         create_with_commit!
       else
+        print_warning "The file config/initializers/version.rb can be deleted as it is no longer needed" if app_version.version_file_exists?
         create_without_commit!
       end
     end

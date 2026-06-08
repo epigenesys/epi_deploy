@@ -209,6 +209,22 @@ describe EpiDeploy::Release do
           expect(git_wrapper).to have_received(:create_or_update_tag).with expected_release_tag
         end
       end
+
+      context "when config/initializers/version.rb exists" do
+        let(:app_version) { instance_double EpiDeploy::AppVersion, version_file_exists?: true }
+
+        before do
+          allow(app_version).to receive(:version=)
+        end
+
+        specify "it prints a message to prompt the file to be deleted" do
+          allow($stdout).to receive(:puts)
+
+          subject.create!
+
+          expect($stdout).to have_received(:puts).with including "The file config/initializers/version.rb can be deleted as it is no longer needed"
+        end
+      end
     end
   end
 end

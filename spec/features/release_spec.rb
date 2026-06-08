@@ -37,6 +37,20 @@ describe "Release", :bundle, type: :aruba do
       end
     end
 
+    context "if the file config/initializers/version.rb exists" do
+      before do
+        write_file "config/initializers/version.rb", <<~RUBY
+          APP_VERSION = '5'
+        RUBY
+      end
+
+      specify "it prints a message prompting me to delete the file" do
+        run_ed "release"
+
+        expect(all_output).to include "The file config/initializers/version.rb can be deleted as it is no longer needed"
+      end
+    end
+
     it "deploys the release if the flag is supplied" do
       run_ed 'release --deploy production'
 
