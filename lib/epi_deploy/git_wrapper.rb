@@ -21,7 +21,7 @@ module EpiDeploy
     end
 
     def commit(message)
-      git.commit_all message
+      git.commit message
     end
 
     def push(branch, **options)
