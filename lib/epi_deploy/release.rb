@@ -83,8 +83,26 @@ module EpiDeploy
     def create_without_commit!
       common_steps
 
-      false if most_recent_commit_already_tagged?
+      result = false
+      release_tag = nil
 
+      if release_tag_list.empty?
+        release_tag = ReleaseTag.new commit: git_wrapper.short_commit_hash, version: 1
+      elsif most_recent_commit_already_tagged?
+        self.app_version.version = most_recent_release_tag.version
+      else
+        release_tag = most_recent_release_tag.increment(commit: git_wrapper.short_commit_hash)
+      end
+
+      unless release_tag.nil?
+        self.tag = "#{release_tag}"
+        git_wrapper.create_or_update_tag(self.tag)
+        self.app_version.version = release_tag.version
+
+        result = true
+      end
+
+      result
     rescue ::Git::GitExecuteError => e
       print_failure_and_abort "A git error occurred: #{e.message}"
     end
@@ -104,7 +122,11 @@ module EpiDeploy
     end
 
     def most_recent_commit_already_tagged?
-      git_wrapper.git_object_for(git_wrapper.most_recent_release_tag) == git_wrapper.most_recent_commit
+      git_wrapper.git_object_for("#{most_recent_release_tag}").sha == git_wrapper.most_recent_commit.sha
+    end
+
+    def most_recent_release_tag
+      @most_recent_release_tag ||= ReleaseTag.parse(git_wrapper.most_recent_release_tag)
     end
 
     def get_commit(git_reference)
