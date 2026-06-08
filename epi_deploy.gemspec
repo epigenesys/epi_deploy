@@ -12,7 +12,7 @@ Gem::Specification.new do |gem|
   gem.files = Dir["bin/*", "lib/**", "LICENSE.txt", "README.md"]
   gem.executables   = Dir["bin/*"].map { |f| File.basename(f) }
 
-  gem.required_ruby_version = ">= 3.0"
+  gem.required_ruby_version = ">= 3.1"
 
   gem.add_dependency "git", "~> 1.5"
   gem.add_dependency "slop", "~> 3.6"
