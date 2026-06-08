@@ -66,7 +66,7 @@ module EpiDeploy
     end
 
     def release_tag_list
-      @release_tag_list ||= tag_list.filter { |tag| tag.match? Release::RELEASE_TAG_REGEX }
+      @release_tag_list ||= tag_list.filter { |tag| tag.match? ReleaseTag::REGEXP }
     end
 
     def most_recent_release_tag

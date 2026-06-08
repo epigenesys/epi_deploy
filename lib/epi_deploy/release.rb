@@ -4,6 +4,7 @@ require_relative "helpers"
 require_relative "git_wrapper"
 require_relative "app_version"
 require_relative "config"
+require_relative "release_tag"
 
 module EpiDeploy
   class Release
@@ -11,7 +12,6 @@ module EpiDeploy
     include EpiDeploy::Helpers
 
     MONTHS = %w[jan feb mar apr may jun jul aug sep oct nov dec]
-    RELEASE_TAG_REGEX = /\A\d{4}[a-z]{3}\d{2}-\d{4}-[0-9a-f]+-v\d+\z/
 
     attr_accessor :reference
     attr_accessor :tag
@@ -65,7 +65,7 @@ module EpiDeploy
         false
       else
         new_version = app_version.bump
-        self.tag = "#{date_and_time_for_tag}-#{git_wrapper.short_commit_hash}-v#{new_version}"
+        self.tag = ReleaseTag.new(commit: git_wrapper.short_commit_hash, version: new_version).to_s
         app_version.latest_release_tag = self.tag
         app_version.save!
         git_wrapper.add(app_version.version_file_path)
@@ -105,12 +105,6 @@ module EpiDeploy
 
     def most_recent_commit_already_tagged?
       git_wrapper.git_object_for(git_wrapper.most_recent_release_tag) == git_wrapper.most_recent_commit
-    end
-
-    # Use Time.zone if we have it (i.e. Rails), otherwise use Time
-    def date_and_time_for_tag(time_class = (Time.respond_to?(:zone) ? Time.zone : Time))
-      time = time_class.now
-      time.strftime "%Y#{MONTHS[time.month - 1]}%d-%H%M"
     end
 
     def get_commit(git_reference)
