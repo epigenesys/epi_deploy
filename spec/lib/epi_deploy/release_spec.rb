@@ -113,7 +113,7 @@ describe EpiDeploy::Release do
 
         specify "it aborts with an error message" do
           expect { subject.create! }.to raise_error abort_exception
-          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them."
+          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
         end
 
         specify "it creates a release if allow_empty is truthy" do
@@ -185,7 +185,7 @@ describe EpiDeploy::Release do
 
         specify "it aborts with an error message" do
           expect { subject.create! }.to raise_error abort_exception
-          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them."
+          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
         end
 
         specify "it creates a release if allow_empty is truthy" do

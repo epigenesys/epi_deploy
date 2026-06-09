@@ -21,7 +21,7 @@ end
 
 class MockRelease
 
-  def create!; true; end
+  def create!(...); true; end
   def deploy!(environments); end
   def version; 5; end
   def tag; 'nice-taggy'; end
@@ -34,12 +34,13 @@ class MockRelease
 end
 
 describe "Command" do
-  before do
-    allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_notice: nil, print_success: nil, print_failure_and_abort: nil)
-  end
-
   let(:options) { double(to_hash: {}) }
   let(:args) { [] }
+
+  before do
+    allow_any_instance_of(EpiDeploy::Helpers).to receive_messages(print_notice: nil, print_success: nil, print_failure_and_abort: nil)
+    allow(options).to receive(:[]).with(:allow_dirty).and_return(false)
+  end
 
   describe "release" do
     subject { EpiDeploy::Command.new options, args, MockRelease }
