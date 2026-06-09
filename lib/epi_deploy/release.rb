@@ -69,6 +69,7 @@ module EpiDeploy
         self.tag = ReleaseTag.new(commit: git_wrapper.short_commit_hash, version: new_version).to_s
         app_version.latest_release_tag = self.tag
         app_version.save!
+        git_wrapper.reset
         git_wrapper.add(app_version.version_file_path)
         git_wrapper.commit "Bumped to version #{new_version} [skip ci]"
 

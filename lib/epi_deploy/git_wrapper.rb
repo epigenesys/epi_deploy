@@ -24,6 +24,10 @@ module EpiDeploy
       git.commit message
     end
 
+    def reset(...)
+      git.reset(...)
+    end
+
     def push(branch, **options)
       options = { force: false, tags: true }.merge(options)
       git.push "origin", branch, **options

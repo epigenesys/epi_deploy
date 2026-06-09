@@ -50,6 +50,12 @@ describe EpiDeploy::Release do
           expect(subject.create!).to be true
         end
 
+        it "calls git reset to unstage any pending changes" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:reset)
+        end
+
         it "performs a git pull to ensure code is the latest" do
           subject.create!
 
