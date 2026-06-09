@@ -12,7 +12,7 @@ module EpiDeploy
 
     attr_reader :use_tags_for_deploy
     attr_accessor :use_timestamped_deploy_tags
-    attr_writer :create_release_commit
+    attr_accessor :create_release_commit
 
     def use_tags_for_deploy=(use_tags_for_deploy)
       print_warning "[Deprecation Warning] The use_tags_for_deploy option is now obsolete. Remove this from your configuration."
@@ -20,7 +20,15 @@ module EpiDeploy
     end
 
     def create_release_commit?
-      @create_release_commit
+      create_release_commit
+    end
+
+    def use_tags_for_deploy?
+      use_tags_for_deploy
+    end
+
+    def use_timestamped_deploy_tags?
+      use_timestamped_deploy_tags
     end
 
   end
