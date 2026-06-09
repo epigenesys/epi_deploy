@@ -21,6 +21,11 @@ module EpiDeploy
         if EpiDeploy.use_timestamped_deploy_tags
           deploy_with_timestamped_tags(stages_or_environments)
         else
+          print_warning <<~EOF
+            [Deprecation Warning] Deploying with tags will be the only option
+            in the next major release, and deploying with branches will be removed.
+            Refer to the README on GitLab for instructions on how to switch to using tags.
+          EOF
           deploy_with_environment_branches(stages_or_environments)
         end
       rescue ::Git::GitExecuteError => e

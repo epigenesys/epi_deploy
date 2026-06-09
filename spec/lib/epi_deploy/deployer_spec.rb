@@ -152,6 +152,12 @@ RSpec.describe EpiDeploy::Deployer do
           subject.deploy! ['demo', 'production']
         end.to raise_error system_exit
       end
+
+      it "warns that deploying with tags will be the only behaviour in the next release" do
+        subject.deploy! %w[ production ]
+
+        expect(Kernel).to have_received(:warn).with including "[Deprecation Warning] Deploying with tags will be the only option"
+      end
     end
   end
 end
