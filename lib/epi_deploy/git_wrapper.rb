@@ -10,10 +10,17 @@ module EpiDeploy
     end
 
     def pending_changes?
-      # replaced the git library with a system call
-      # due to it iterating all project files when
-      # doing a git status.
-      !system("git diff --quiet --exit-code")
+      !working_tree_clean? || !stage_clean?
+    end
+
+    # git library is not used here as #status iterates over all project files
+    # which is not performant for large projects.
+    def working_tree_clean?
+      system "git diff --quiet --exit-code"
+    end
+
+    def stage_clean?
+      system "git diff --cached --quiet --exit-code"
     end
 
     def pull
