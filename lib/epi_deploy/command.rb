@@ -21,7 +21,7 @@ module EpiDeploy
 
     def release
       release = self.release_class.new
-      if release.create!
+      if release.create!(allow_dirty:)
         print_success "Release #{release.version} created with tag #{release.tag}"
       else
         print_notice "Release #{release.version} has already been created on the most recent commit"
@@ -89,6 +89,10 @@ module EpiDeploy
 
     def stages_extractor
       @stages_extractor ||= StagesExtractor.new
+    end
+
+    def allow_dirty
+      options[:allow_dirty]
     end
 
   end

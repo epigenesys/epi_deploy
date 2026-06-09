@@ -104,7 +104,7 @@ describe EpiDeploy::Release do
 
         specify "it aborts with an error message" do
           expect { subject.create! }.to raise_error abort_exception
-          expect(Kernel).to have_received(:abort).with including "You can only create a release on the main or master branch. Please switch to main or master and try again."
+          expect(Kernel).to have_received(:abort).with including "You can only create a release on the main or master branch - please switch to main or master."
         end
       end
 
@@ -113,7 +113,11 @@ describe EpiDeploy::Release do
 
         specify "it aborts with an error message" do
           expect { subject.create! }.to raise_error abort_exception
-          expect(Kernel).to have_received(:abort).with including "You have pending changes, please commit or stash them and try again."
+          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them."
+        end
+
+        specify "it creates a release if allow_empty is truthy" do
+          expect(subject.create! allow_dirty: true).to be true
         end
       end
 
@@ -172,7 +176,7 @@ describe EpiDeploy::Release do
 
         specify "it aborts with an error message" do
           expect { subject.create! }.to raise_error abort_exception
-          expect(Kernel).to have_received(:abort).with including "You can only create a release on the main or master branch. Please switch to main or master and try again."
+          expect(Kernel).to have_received(:abort).with including "You can only create a release on the main or master branch - please switch to main or master."
         end
       end
 
@@ -181,7 +185,11 @@ describe EpiDeploy::Release do
 
         specify "it aborts with an error message" do
           expect { subject.create! }.to raise_error abort_exception
-          expect(Kernel).to have_received(:abort).with including "You have pending changes, please commit or stash them and try again."
+          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them."
+        end
+
+        specify "it creates a release if allow_empty is truthy" do
+          expect(subject.create! allow_dirty: true).to be true
         end
       end
 

@@ -27,7 +27,9 @@ module EpiDeploy
       self.app_version = app_version
     end
 
-    def create!
+    def create!(allow_dirty: false)
+      @allow_dirty = allow_dirty
+
       if EpiDeploy.create_release_commit?
         create_with_commit!
       else
@@ -115,8 +117,19 @@ module EpiDeploy
     end
 
     def prerelease_checks
-      print_failure_and_abort "You can only create a release on the main or master branch. Please switch to main or master and try again." unless git_wrapper.on_primary_branch?
-      print_failure_and_abort "You have pending changes, please commit or stash them and try again." if git_wrapper.pending_changes?
+      messages = []
+      unless git_wrapper.on_primary_branch?
+        messages << "You can only create a release on the main or master branch - please switch to main or master."
+      end
+
+      if git_wrapper.pending_changes? && !@allow_dirty
+        messages << "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
+      end
+
+      unless messages.empty?
+        messages.unshift "There were one or more errors with creating a release:"
+        print_failure_and_abort messages.join("\n")
+      end
     end
 
     def app_version

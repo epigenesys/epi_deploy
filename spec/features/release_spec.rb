@@ -9,6 +9,69 @@ describe "Release", :bundle, type: :aruba do
   let(:expected_version) {}
   let(:expected_release_tag) { "#{Time.now.strftime("%Y%b%d-%H%M")}-#{short_commit_hash}-v#{expected_version}".downcase }
 
+  shared_examples "deployed release" do
+    it "deploys the release if the flag is supplied" do
+      run_ed 'release --deploy production'
+
+      expect(last_command_started).to have_exit_status(0)
+      expect(all_output).to include('Deploying to production...')
+      expect(all_output).to include 'Capistrano deploying to production'
+    end
+
+    it 'does not deploy a second environment if the first environment deployment fails' do
+      run_ed 'release --deploy demo:production'
+
+      expect(last_command_started).to have_exit_status(1)
+      expect(all_output).to include('Deploying to demo...')
+      expect(all_output).to include('Deployment failed - please review output before deploying again')
+      expect(all_output).not_to include('Deploying to production...')
+      expect(all_output).not_to include 'Capistrano deploying to production'
+    end
+  end
+
+  shared_context "release with pending changes" do
+    context "if the working tree is dirty" do
+      before do
+        write_file "Gemfile", "test contents"
+      end
+
+      specify "it fails to create a release and prints a message" do
+        run_ed "release"
+
+        expect(last_command_started).to have_exit_status(1)
+        expect(all_output).to include "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
+      end
+
+      specify "it creates a release if the --allow-dirty flag is supplied and retains the dirty working tree" do
+        run_ed "release --allow-dirty"
+
+        expect(last_command_started).to have_exit_status(0)
+        expect(git.status.changed.keys).to contain_exactly "Gemfile"
+      end
+    end
+
+    context "if the index is dirty" do
+      before do
+        write_file "Gemfile", "test contents"
+        git.add "Gemfile"
+      end
+
+      specify "it fails to create a release and prints a message" do
+        run_ed "release"
+
+        expect(last_command_started).to have_exit_status(1)
+        expect(all_output).to include "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
+      end
+
+      specify "it creates a release if the --allow-dirty flag is supplied and resets any staged changes back to the working tree" do
+        run_ed "release --allow-dirty"
+
+        expect(last_command_started).to have_exit_status(0)
+        expect(git.status.changed.keys).to contain_exactly "Gemfile"
+      end
+    end
+  end
+
   shared_examples "configured to not create release commit" do
     let(:short_commit_hash) { git.log.first.sha[0..6] }
 
@@ -51,23 +114,8 @@ describe "Release", :bundle, type: :aruba do
       end
     end
 
-    it "deploys the release if the flag is supplied" do
-      run_ed 'release --deploy production'
-
-      expect(last_command_started).to have_exit_status(0)
-      expect(all_output).to include('Deploying to production...')
-      expect(all_output).to include 'Capistrano deploying to production'
-    end
-
-    it 'does not deploy a second environment if the first environment deployment fails' do
-      run_ed 'release --deploy demo:production'
-
-      expect(last_command_started).to have_exit_status(1)
-      expect(all_output).to include('Deploying to demo...')
-      expect(all_output).to include('Deployment failed - please review output before deploying again')
-      expect(all_output).not_to include('Deploying to production...')
-      expect(all_output).not_to include 'Capistrano deploying to production'
-    end
+    it_behaves_like "release with pending changes"
+    it_behaves_like "deployed release"
   end
 
   context "given EpiDeploy.create_release_commit option is configured to true" do
@@ -128,23 +176,9 @@ describe "Release", :bundle, type: :aruba do
       end
     end
 
-    it "deploys the release if the flag is supplied" do
-      run_ed 'release --deploy production'
+    it_behaves_like "release with pending changes"
 
-      expect(last_command_started).to have_exit_status(0)
-      expect(all_output).to include('Deploying to production...')
-      expect(all_output).to include 'Capistrano deploying to production'
-    end
-
-    it 'does not deploy a second environment if the first environment deployment fails' do
-      run_ed 'release --deploy demo:production'
-
-      expect(last_command_started).to have_exit_status(1)
-      expect(all_output).to include('Deploying to demo...')
-      expect(all_output).to include('Deployment failed - please review output before deploying again')
-      expect(all_output).not_to include('Deploying to production...')
-      expect(all_output).not_to include 'Capistrano deploying to production'
-    end
+    it_behaves_like "deployed release"
   end
 
   context "given EpiDeploy.create_release_commit option is not configured" do
