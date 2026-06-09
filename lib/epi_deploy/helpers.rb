@@ -11,7 +11,7 @@ module EpiDeploy
     end
 
     def print_warning(message)
-      $stdout.puts "#{COLOUR_YELLOW}#{message}#{COLOUR_RESET}"
+      Kernel.warn "#{COLOUR_YELLOW}#{message}#{COLOUR_RESET}"
     end
 
     def print_success(message)
