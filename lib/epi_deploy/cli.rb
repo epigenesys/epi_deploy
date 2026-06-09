@@ -16,6 +16,7 @@ module EpiDeploy
           description "Create a new release with optional deploy"
 
           on :d=, :deploy=, "Deploy to specified environment(s)", argument: :optional, as: Array, delimiter: ":"
+          on :allow_dirty, "Allow creating a release with a dirty working tree or index", default: false
 
           run do |options, args|
             command = EpiDeploy::Command.new(options, args)
