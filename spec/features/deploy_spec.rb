@@ -17,11 +17,20 @@ describe "Deploy", :bundle, type: :aruba do
   end
 
   it "deploys latest release" do
-    run_command_and_stop 'git tag -a example_tag -m "For testing"'  # Create a pretend release
+    run_command_and_stop 'git tag -a 2026jun09-1610-c17fe6f-v1 -m "For testing"'  # Create a pretend release
     run_command_and_stop 'git push'
 
-    run_ed 'deploy production -r example_tag'
+    run_ed 'deploy production'
 
+    expect(all_output).to include('Deploying to production...')
+    expect(last_command_started).to have_exit_status(0)
+  end
+
+  it "deploys the reference specified" do
+    run_command_and_stop 'git tag -a feature-tag -m "For testing"'
+    run_command_and_stop "git push"
+
+    run_ed "deploy production -r feature-tag"
     expect(all_output).to include('Deploying to production...')
     expect(last_command_started).to have_exit_status(0)
   end

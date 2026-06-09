@@ -232,11 +232,11 @@ describe EpiDeploy::Release do
         end
 
         specify "it prints a message to prompt the file to be deleted" do
-          allow($stdout).to receive(:puts)
+          allow(Kernel).to receive(:warn)
 
           subject.create!
 
-          expect($stdout).to have_received(:puts).with including "The file config/initializers/version.rb can be deleted as it is no longer needed"
+          expect(Kernel).to have_received(:warn).with including "The file config/initializers/version.rb can be deleted as it is no longer needed"
         end
       end
     end
