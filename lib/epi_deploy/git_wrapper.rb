@@ -5,6 +5,12 @@ module EpiDeploy
   class GitWrapper
 
     include EpiDeploy::Helpers
+    attr_writer :git
+
+    def initialize(git: nil)
+      self.git = git
+    end
+
     def on_primary_branch?
       ["main", "master"].include? current_branch
     end
@@ -66,9 +72,16 @@ module EpiDeploy
     end
 
     def delete_branches(branches)
-      remote_refs = branches.map { |branch| "refs/heads/#{branch}" }
-      run_custom_command("git push origin #{remote_refs.join(' ')} --delete")
-      local_branches(branches).each(&:delete)
+      # Delete remote branches
+      remote_branches = filter_branches(git.branches.remote, branches)
+      if remote_branches.any?
+        remote_refs = remote_branches.map { |branch| "refs/heads/#{branch.name}" }
+        run_custom_command("git push origin #{remote_refs.join(' ')} --delete")
+      end
+
+      # Delete local branches
+      local_branches = filter_branches(git.branches.local, branches)
+      local_branches.each(&:delete)
     end
 
     # Returns a list of all annotated tags sorted by the date which the tag was created, newest first
@@ -106,9 +119,8 @@ module EpiDeploy
       run_custom_command("git branch -f #{name} #{commit}")
     end
 
-    def local_branches(branch_names = [])
-      branches = git.branches.local.filter { |branch| branch_names.include? branch.name }
-      branches || []
+    def filter_branches(branches, names = [])
+      branches.filter { |branch| names.include? branch.name }
     end
 
     def run_custom_command(command)
