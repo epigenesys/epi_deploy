@@ -35,27 +35,55 @@ $ bundle install
 ### Initial Setup
 No initial setup is required as prerequisites are checked automatically before each command is run.
 
-### Commands
+### Creating a release
 
-This command will bump the version in config/initializers/version.rb, create a Git tag in the format YYYYmonDD-HHMM-&lt;short_commit_hash&gt;-v&lt;version&gt; and push it to the remote repository. This can only be done on the **main** or **master** branch.
+Creating a release without a commit is now the default behaviour, and in a future version will become the only way to make releases. It is recommended that you migrate your workflow as soon as possible to releasing without a commit.
+
+Releasing creates a Git tag in the format `YYYYmonDD-HHMM-<short_commit_hash>-v<version>`, where `<short_commit_hash>` is the first seven characters of the hash of the latest commit on the main branch, and `<version>` is one more than the `<version>` in the previous release tag. The tag is pushed to the remote repository. Releasing can only be done on the `main` or `master` branch.
 
 ```bash
 $ ed release
 ```
 
-Optional flag to deploy to the given environment(s) after creating the release. Shorthand -d.
+To revert back to the previous behaviour of creating a release with a commit, set `EpiDeploy.create_release_commit` to `true` in your `config/epi_deploy.rb`. This raises a deprecation warning each time a release is made.
+
+```rb
+# config/epi_deploy.rb
+EpiDeploy.create_release_commit = true
+```
+
+Creating a release with a commit creates or bumps the version in `config/initializers/version.rb`, setting an `APP_VERSION` constant. This is read instead of the latest release tag when determining what `<version>` to use.
+
+```rb
+# config/initializers/version.rb
+APP_VERSION = '2'
+```
+
+The change is committed, and pushed up. The `<short_commit_hash>` is the hash of the parent of the release commit, **not** the release commit itself.
+
+By default, creating a release is prevented if your working tree or index is dirty, i.e. you have changes to files that are already tracked by Git, or you have staged any changes. To ignore this, you can pass the `--allow-dirty` flag when releasing
+
+```rb
+ed release --allow-dirty
+```
+
+If `EpiDeploy.create_release_commit = true`, then this will call `git reset` to unstage any staged changes to ensure that only the change to the `version.rb` is committed.
+
+### Deploying a release
+
+The simplest way to deploy is at the same time as creating a commit, by passing the `--deploy` or `-d` flag with the given environment(s) after creating the release. Separate each environment with a colon.
 
 ```bash
 $ ed release --deploy demo:production
 ```
 
-Deploy the latest release to the given environment(s).
+Alternatively, you can deploy separately to creating a release using the `deploy` command. This deploys the latest release to the given environment(s) by default. Separate each environment with a space.
 
 ```bash
 $ ed deploy demo production
 ```
 
-Optional flag to specify which tag, commit, or branch to deploy to the given environment(s). Shorthand -r. If the flag is provided without a reference you will be prompted to choose from the latest releases.
+You can also pass the `--ref` or `-r` flag to specify which tag, commit, or branch to deploy to the given environment(s). If the flag is provided without a reference you will be prompted to choose from the latest releases.
 
 ```bash
 $ ed deploy demo production --ref <reference>
