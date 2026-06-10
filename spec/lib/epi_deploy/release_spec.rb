@@ -25,7 +25,10 @@ describe EpiDeploy::Release do
   let(:abort_exception) { RuntimeError.new "abort" }
   let(:expected_release_tag) { "#{Time.now.strftime("%Y%b%d-%H%M")}-#{git_wrapper.short_commit_hash}-v#{version + 1}".downcase }
 
-  before { allow(Kernel).to receive(:abort).and_raise(abort_exception) }
+  before do
+    allow(Kernel).to receive(:abort).and_raise(abort_exception)
+    allow(Kernel).to receive(:warn)
+  end
 
   describe "#create!" do
     context "given EpiDeploy.create_release_commit option is configured to true" do

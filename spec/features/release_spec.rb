@@ -127,6 +127,12 @@ describe "Release", :bundle, type: :aruba do
       RUBY
     end
 
+    specify "it prints a deprecation warning that prompts me to switch to using" do
+      run_ed "release"
+
+      expect(all_output).to include "[Deprecation Warning] Deploying with tags will be the only option"
+    end
+
     context "given no version.rb is found" do
       let(:expected_version) { 1 }
 
