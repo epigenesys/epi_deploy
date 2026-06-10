@@ -6,9 +6,8 @@ This gem provides a convenient interface for creating releases and deploying usi
 
 ### Branch Notes
 
-* `main` / `master` should only contain deployable code.
-* Each deployment environment has its own branch.
-* Remote repository is assumed to be named 'origin'
+* You can only create a release from `main` / `master`.
+* The remote repository is assumed to be named `origin`.
 
 ## Installation
 
