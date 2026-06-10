@@ -15,7 +15,7 @@ module EpiDeploy
     attr_reader :create_release_commit
 
     def use_tags_for_deploy=(use_tags_for_deploy)
-      print_warning "[Deprecation Warning] The use_tags_for_deploy option is now obsolete. Remove this from your configuration."
+      print_failure_and_abort "The use_tags_for_deploy option is now obsolete. Remove this from your configuration to continue."
       @use_tags_for_deploy = use_tags_for_deploy
     end
 

@@ -51,4 +51,18 @@ describe "Deploy", :bundle, type: :aruba do
       expect(all_output).to include "[Deprecation Warning] Deploying with tags will be the only option"
     end
   end
+
+  context "given that EpiDeploy.use_tags_for_deploy is configured" do
+    before do
+      write_file "config/epi_deploy.rb", <<~RUBY
+        EpiDeploy.use_tags_for_deploy = true
+      RUBY
+    end
+
+    specify "it exits with an error" do
+      run_ed "deploy production"
+
+      expect(all_output).to include "The use_tags_for_deploy option is now obsolete. Remove this from your configuration to continue."
+    end
+  end
 end
