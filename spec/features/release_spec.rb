@@ -127,10 +127,10 @@ describe "Release", :bundle, type: :aruba do
       RUBY
     end
 
-    specify "it prints a deprecation warning that prompts me to switch to using" do
+    specify "it prints a deprecation warning that prompts me to switch to commitless releases" do
       run_ed "release"
 
-      expect(all_output).to include "[Deprecation Warning] Deploying with tags will be the only option"
+      expect(all_output).to include "[Deprecation Warning] The create_release_commit option should only be used"
     end
 
     context "given no version.rb is found" do
