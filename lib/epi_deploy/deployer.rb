@@ -22,9 +22,10 @@ module EpiDeploy
           deploy_with_timestamped_tags(stages_or_environments)
         else
           print_warning <<~EOF.chomp
-            [Deprecation Warning] Deploying with tags will be the only option
-            in the next major release, and deploying with branches will be removed.
-            Refer to the README on GitLab for instructions on how to switch to using tags.
+            [Deprecation Warning] Branchless deployments will be the only option
+            in a future version, and branchful deployments will be removed.
+            See the section on branchless deployments in the README for instructions.
+            https://github.com/epigenesys/epi_deploy/blob/master/README.md
           EOF
           deploy_with_environment_branches(stages_or_environments)
         end

@@ -48,7 +48,7 @@ describe "Deploy", :bundle, type: :aruba do
 
       run_ed "deploy production"
 
-      expect(all_output).to include "[Deprecation Warning] Deploying with tags will be the only option"
+      expect(all_output).to include "[Deprecation Warning] Branchless deployments will be the only option"
     end
   end
 

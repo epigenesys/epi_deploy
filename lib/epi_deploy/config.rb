@@ -15,7 +15,11 @@ module EpiDeploy
     attr_reader :create_release_commit
 
     def use_tags_for_deploy=(use_tags_for_deploy)
-      print_failure_and_abort "The use_tags_for_deploy option is now obsolete. Remove this from your configuration to continue."
+      print_failure_and_abort <<~EOF.chomp
+        The use_tags_for_deploy option is now obsolete. It has been superseded by use_timestamped_deploy_tags.
+        See the section on branchless deployments in the README.
+        https://github.com/epigenesys/epi_deploy/blob/master/README.md
+      EOF
       @use_tags_for_deploy = use_tags_for_deploy
     end
 
@@ -25,8 +29,9 @@ module EpiDeploy
           [Deprecation Warning] The create_release_commit option should only be used
           if it is currently necessary for your workflow.
 
-          Please migrate to releasing without a commit, as releasing with a commit
-          will be removed in a future version. Instructions can be found in the README.
+          Please migrate to commitless releases, as commitful releases will be removed
+          in a future version. Instructions can be found in the README.
+          https://github.com/epigenesys/epi_deploy/blob/master/README.md
         EOF
       end
       @create_release_commit = value

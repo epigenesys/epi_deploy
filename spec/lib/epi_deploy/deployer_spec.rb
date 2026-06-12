@@ -146,10 +146,10 @@ RSpec.describe EpiDeploy::Deployer do
         expect { subject.deploy! ['demo', 'production'] }.to raise_error system_exit
       end
 
-      it "warns that deploying with tags will be the only behaviour in the next release" do
+      it "warns that branchful deployments will be the only behaviour in a future version" do
         subject.deploy! %w[ production ]
 
-        expect(Kernel).to have_received(:warn).with including "[Deprecation Warning] Deploying with tags will be the only option"
+        expect(Kernel).to have_received(:warn).with including "[Deprecation Warning] Branchless deployments will be the only option"
       end
     end
   end

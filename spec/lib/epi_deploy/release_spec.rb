@@ -237,8 +237,6 @@ describe EpiDeploy::Release do
         end
 
         specify "it prints a message to prompt the file to be deleted" do
-          allow(Kernel).to receive(:warn)
-
           subject.create!
 
           expect(Kernel).to have_received(:warn).with including "The file config/initializers/version.rb should be deleted as it is no longer needed by epi_deploy"

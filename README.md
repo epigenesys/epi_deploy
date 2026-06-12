@@ -37,7 +37,7 @@ No initial setup is required as prerequisites are checked automatically before e
 
 ### Creating a release
 
-Creating a release without a commit is now the default behaviour, and in a future version will become the only way to make releases. It is recommended that you migrate your workflow as soon as possible to releasing without a commit.
+**Creating commitless releases is now the default behaviour, and in a future version will be the only way to make releases. It is recommended that you migrate your workflow as soon as possible to commitless releases.**
 
 Releasing creates a Git tag in the format `YYYYmonDD-HHMM-<short_commit_hash>-v<version>`, where `<short_commit_hash>` is the first seven characters of the hash of the latest commit on the main branch, and `<version>` is one more than the `<version>` in the previous release tag. The tag is pushed to the remote repository. Releasing can only be done on the `main` or `master` branch.
 
@@ -45,14 +45,14 @@ Releasing creates a Git tag in the format `YYYYmonDD-HHMM-<short_commit_hash>-v<
 ed release
 ```
 
-To revert back to the previous behaviour of creating a release with a commit, set `EpiDeploy.create_release_commit` to `true` in your `config/epi_deploy.rb`. This raises a deprecation warning each time a release is made.
+You can revert back to creating commitful releaess, by setting `EpiDeploy.create_release_commit` to `true` in your `config/epi_deploy.rb`. This raises a deprecation warning each time a release is made.
 
 ```rb
 # config/epi_deploy.rb
 EpiDeploy.create_release_commit = true
 ```
 
-Creating a release with a commit creates or bumps the version in `config/initializers/version.rb`, setting an `APP_VERSION` constant. This is read instead of the latest release tag when determining what `<version>` to use.
+Creating commitful releases sets or bumps the version in `config/initializers/version.rb`, setting an `APP_VERSION` constant. This is read instead of the latest release tag when determining what `<version>` to use.
 
 ```rb
 # config/initializers/version.rb
@@ -67,7 +67,7 @@ By default, creating a release is prevented if your working tree or index is dir
 ed release --allow-dirty
 ```
 
-If `EpiDeploy.create_release_commit = true`, then this will call `git reset` to unstage any staged changes to ensure that only the change to the `version.rb` is committed.
+When creating commitful releases, then this will call `git reset` to unstage any staged changes before to ensure that only the change to the `version.rb` is committed.
 
 ### Deploying a release
 
@@ -135,9 +135,9 @@ You can also deploy to a specific customer by doing e.g. `ed release -d producti
 
 You can also deploy to all customers for a given environment by running e.g. `cap production deploy_all`.
 
-### Moving to tags for stages
+### Moving to branchless deployments
 
-**Deploying with tags will become the only option in the next major release, and deploying with branches will be removed.**
+**Branchless deployment will be the only option in a future version, and branchful deployments will be removed.**
 
 Using branches for stages, i.e. demo and production branches, can clutter up your branches screen. This can be particularly awkward when running CI and keeping track of multiple active branches. To resolve this you can configure `epi_deploy` to use tags for this instead of branches.
 
