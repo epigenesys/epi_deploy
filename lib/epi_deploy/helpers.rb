@@ -3,10 +3,15 @@ module EpiDeploy
 
     COLOUR_RED    = "\x1B[31m"
     COLOUR_GREEN  = "\x1B[32m"
+    COLOUR_YELLOW = "\x1B[33m"
     COLOUR_RESET  = "\x1B[0m"
 
     def print_notice(message)
       $stdout.puts message
+    end
+
+    def print_warning(message)
+      Kernel.warn "#{COLOUR_YELLOW}#{message}#{COLOUR_RESET}"
     end
 
     def print_success(message)

@@ -5,15 +5,28 @@ module EpiDeploy
   class GitWrapper
 
     include EpiDeploy::Helpers
+    attr_writer :git
+
+    def initialize(git: nil)
+      self.git = git
+    end
+
     def on_primary_branch?
       ["main", "master"].include? current_branch
     end
 
     def pending_changes?
-      # replaced the git library with a system call
-      # due to it iterating all project files when
-      # doing a git status.
-      !system("git diff --quiet --exit-code")
+      !working_tree_clean? || !stage_clean?
+    end
+
+    # git library is not used here as #status iterates over all project files
+    # which is not performant for large projects.
+    def working_tree_clean?
+      system "git diff --quiet --exit-code"
+    end
+
+    def stage_clean?
+      system "git diff --cached --quiet --exit-code"
     end
 
     def pull
@@ -21,7 +34,11 @@ module EpiDeploy
     end
 
     def commit(message)
-      git.commit_all message
+      git.commit message
+    end
+
+    def reset(...)
+      git.reset(...)
     end
 
     def push(branch, **options)
@@ -55,13 +72,29 @@ module EpiDeploy
     end
 
     def delete_branches(branches)
-      remote_refs = branches.map { |branch| "refs/heads/#{branch}" }
-      run_custom_command("git push origin #{remote_refs.join(' ')} --delete")
-      local_branches(branches).each(&:delete)
+      # Delete remote branches
+      remote_branches = filter_branches(git.branches.remote, branches)
+      if remote_branches.any?
+        remote_refs = remote_branches.map { |branch| "refs/heads/#{branch.name}" }
+        run_custom_command("git push origin #{remote_refs.join(' ')} --delete")
+      end
+
+      # Delete local branches
+      local_branches = filter_branches(git.branches.local, branches)
+      local_branches.each(&:delete)
     end
 
+    # Returns a list of all annotated tags sorted by the date which the tag was created, newest first
     def tag_list
-      @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.gsub("'", "").split.reverse
+      @tag_list ||= `git tag --list --sort=taggerdate --format='%(tag)'`.split.reverse
+    end
+
+    def release_tag_list
+      @release_tag_list ||= tag_list.filter { |tag| tag.match? ReleaseTag::REGEXP }
+    end
+
+    def most_recent_release_tag
+      release_tag_list.first
     end
 
     def current_branch
@@ -86,9 +119,8 @@ module EpiDeploy
       run_custom_command("git branch -f #{name} #{commit}")
     end
 
-    def local_branches(branch_names = [])
-      branches = git.branches.local.filter { |branch| branch_names.include? branch.name }
-      branches || []
+    def filter_branches(branches, names = [])
+      branches.filter { |branch| names.include? branch.name }
     end
 
     def run_custom_command(command)

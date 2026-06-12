@@ -21,7 +21,7 @@ module EpiDeploy
 
     def release
       release = self.release_class.new
-      if release.create!
+      if release.create!(allow_dirty:)
         print_success "Release #{release.version} created with tag #{release.tag}"
       else
         print_notice "Release #{release.version} has already been created on the most recent commit"
@@ -52,7 +52,7 @@ module EpiDeploy
       print_notice "Select a recent release (or just press enter for latest):"
 
       tag_list = {}
-      self.release_class.new.release_tags_list.each_with_index do |release, i|
+      GitWrapper.new.release_tag_list.each_with_index do |release, i|
         number = i + 1
         tag_list[number.to_s] = release
         print_notice "#{number}: #{release}"
@@ -89,6 +89,10 @@ module EpiDeploy
 
     def stages_extractor
       @stages_extractor ||= StagesExtractor.new
+    end
+
+    def allow_dirty
+      options[:allow_dirty]
     end
 
   end

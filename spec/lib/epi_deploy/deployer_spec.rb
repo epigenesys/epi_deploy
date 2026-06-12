@@ -112,23 +112,20 @@ RSpec.describe EpiDeploy::Deployer do
 
     context 'given that timestamped deploy tags have not been enabled' do
       before do
+        allow(Kernel).to receive_messages warn: nil, system: true
         allow(EpiDeploy).to receive(:use_timestamped_deploy_tags).and_return(false)
       end
 
       it "runs the capistrano deploy task for single-customer environments" do
-        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap demo deploy").and_return(true)
+        subject.deploy! %w[demo]
 
-        expect do
-          subject.deploy! %w[demo]
-        end.not_to raise_error
+        expect(Kernel).to have_received(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap demo deploy")
       end
 
       it 'runs the capistrano deploy_all task for multi-customer environments' do
-        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production deploy_all").and_return(true)
+        subject.deploy! %w[production]
 
-        expect do
-          subject.deploy! %w[production]
-        end.not_to raise_error
+        expect(Kernel).to have_received(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production deploy_all")
       end
 
       it 'creates a branch for each deployment environment' do
@@ -137,9 +134,7 @@ RSpec.describe EpiDeploy::Deployer do
         expect(git_wrapper).to receive(:create_or_update_branch).with('demo', release.commit)
         expect(git_wrapper).to receive(:create_or_update_branch).with('production', release.commit).at_least(:once)
 
-        expect do
-          subject.deploy! ['production.epigenesys', 'production.genesys', 'demo']
-        end.not_to raise_error
+        subject.deploy! ['production.epigenesys', 'production.genesys', 'demo']
       end
 
       it 'creates a branch for a deployment stage each if it does not succeed but not for subsequent environments' do
@@ -148,9 +143,13 @@ RSpec.describe EpiDeploy::Deployer do
         expect(git_wrapper).to receive(:create_or_update_branch).with('demo', release.commit)
         expect(git_wrapper).not_to receive(:create_or_update_branch).with('production', any_args)
 
-        expect do
-          subject.deploy! ['demo', 'production']
-        end.to raise_error system_exit
+        expect { subject.deploy! ['demo', 'production'] }.to raise_error system_exit
+      end
+
+      it "warns that branchful deployments will be the only behaviour in a future version" do
+        subject.deploy! %w[ production ]
+
+        expect(Kernel).to have_received(:warn).with including "[Deprecation Warning] Branchless deployments will be the only option"
       end
     end
   end

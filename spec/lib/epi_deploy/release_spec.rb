@@ -1,110 +1,247 @@
+# frozen_string_literal: true
+
 require 'time'
 
 require 'spec_helper'
 require 'epi_deploy/stages_extractor'
 require 'epi_deploy/release'
 
-class MockGit
-
-  def initialize(on_primary_branch: true, pending_changes: false)
-    @on_primary_branch = on_primary_branch
-    @pending_changes = pending_changes
-  end
-  def add(files); end
-  def on_primary_branch?; @on_primary_branch; end
-  def pending_changes?; @pending_changes; end
-  def short_commit_hash; 'abc1234'; end
-  def commit(msg); end
-  def tag(name); end
-  def push(ref, **opts); end
-  def pull; end
-  def current_branch; 'main'; end
-  def create_or_update_tag(stage, commit); end
-  def delete_branches(branches); end
-  def most_recent_commit; end
-
-end
-
 describe EpiDeploy::Release do
-  let(:git_wrapper) { MockGit.new }
-  let(:app_version) { double(bump: 42, version_file_path: '', :latest_release_tag= => nil, save!: true) }
+  subject { described_class.new(reference: "test", git_wrapper:, commit: "caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b", app_version:) }
+
+  let(:version) { 41 }
+  let(:git_wrapper) {
+    instance_spy(
+      EpiDeploy::GitWrapper,
+      on_primary_branch?: true,
+      pending_changes?: false,
+      short_commit_hash: "abcdef12",
+      current_branch: "main",
+      most_recent_release_tag: "2026jun08-1215-4bc69b-v#{version}",
+      release_tag_list: ["2026jun08-1215-4bc69b-v#{version}"],
+    )
+  }
+  let(:app_version) { nil }
+  let(:abort_exception) { RuntimeError.new "abort" }
+  let(:expected_release_tag) { "#{Time.now.strftime("%Y%b%d-%H%M")}-#{git_wrapper.short_commit_hash}-v#{version + 1}".downcase }
 
   before do
-    allow(subject).to receive_messages(reference: 'test', git_wrapper: git_wrapper, commit: 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b', app_version: app_version)
-    allow(git_wrapper).to receive(:most_recent_commit).and_return(double('commit', message: 'Some non-release commit'))
+    allow(Kernel).to receive(:abort).and_raise(abort_exception)
+    allow(Kernel).to receive(:warn)
   end
 
   describe "#create!" do
-    describe "preconditions" do
-      it "can only be done on the primary branch" do
-        allow(git_wrapper).to receive_messages(on_primary_branch?: false)
-        expect(subject).to receive(:print_failure_and_abort).with('You can only create a release on the main or master branch. Please switch to main or master and try again.')
+    context "given EpiDeploy.create_release_commit option is configured to true" do
+      let(:app_version) {
+        instance_spy(
+          EpiDeploy::AppVersion,
+          version:,
+          bump: version + 1,
+          version_file_path: '',
+          "latest_release_tag=": nil,
+          save!: true
+        )
+      }
 
-        subject.create!
-      end
-
-      it "errors when pending changes exist" do
-        allow(git_wrapper).to receive_messages(pending_changes?: true)
-        expect(subject).to receive(:print_failure_and_abort).with('You have pending changes, please commit or stash them and try again.')
-
-        subject.create!
-      end
-    end
-
-    it "performs a git pull to ensure code is the latest" do
-      expect(git_wrapper).to receive(:pull)
-
-      expect(subject.create!).to be true
-    end
-
-    it "stops with a warning message when a git pull fails (eg. merge errors)" do
-      expect(git_wrapper).to receive(:pull)
-
-      expect(subject.create!).to be true
-    end
-
-    it "bumps the version number" do
-      expect(app_version).to receive(:bump)
-
-      expect(subject.create!).to be true
-    end
-
-    it "commits the new version number" do
-      expect(git_wrapper).to receive(:commit).with('Bumped to version 42 [skip ci]')
-
-      expect(subject.create!).to be true
-    end
-
-    context 'given that the date and time is 2024-12-1 16:15:00' do
       before do
-        now = Time.new 2014, 12, 1, 16, 15
-        allow(Time).to receive_messages now: now
+        allow(EpiDeploy).to receive(:create_release_commit?).and_return(true)
+        allow(git_wrapper).to receive(:most_recent_commit).and_return(instance_double(Git::Object::Commit, message: 'Some non-release commit'))
       end
 
-      it 'sets the latest release tag in the version the newly-created tag' do
-        expect(app_version).to receive(:latest_release_tag=).with('2014dec01-1615-abc1234-v42')
+      context "if a release can be created" do
+        it "returns true" do
+          expect(subject.create!).to be true
+        end
 
-        expect(subject.create!).to be true
+        it "calls git reset to unstage any pending changes" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:reset)
+        end
+
+        it "performs a git pull to ensure code is the latest" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:pull)
+        end
+
+        it "bumps the version number" do
+          subject.create!
+
+          expect(app_version).to have_received(:bump)
+        end
+
+        it "commits the new version number" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:commit).with('Bumped to version 42 [skip ci]')
+        end
+
+        it 'sets the latest release tag in the app version to the newly-created tag' do
+          subject.create!
+
+          expect(app_version).to have_received(:latest_release_tag=).with expected_release_tag
+        end
+
+        it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version for the new commit" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:create_or_update_tag).with expected_release_tag, push: false
+        end
+
+        it "pushes the new version to primary branch to reduce the chance of version number collisions" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:push).with "main", tags: true
+        end
+
+        it "sets #tag to the newly-created tag" do
+          subject.create!
+
+          expect(subject.tag).to eq expected_release_tag
+        end
       end
 
-      it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version for the new commit" do
-        expect(git_wrapper).to receive(:create_or_update_tag).with('2014dec01-1615-abc1234-v42', push: false)
+      context "if the primary branch is not checked out" do
+        before { allow(git_wrapper).to receive(:on_primary_branch?).and_return(false) }
 
-        expect(subject.create!).to be true
+        specify "it aborts with an error message" do
+          expect { subject.create! }.to raise_error abort_exception
+          expect(Kernel).to have_received(:abort).with including "You can only create a release on the main or master branch - please switch to main or master."
+        end
+      end
+
+      context "if there are pending changes" do
+        before { allow(git_wrapper).to receive(:pending_changes?).and_return(true) }
+
+        specify "it aborts with an error message" do
+          expect { subject.create! }.to raise_error abort_exception
+          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
+        end
+
+        specify "it creates a release if allow_dirty is truthy" do
+          expect(subject.create! allow_dirty: true).to be true
+        end
+      end
+
+      context "if the most recent commit is a release commit" do
+        before { allow(git_wrapper).to receive(:most_recent_commit).and_return(instance_double(Git::Object::Commit, message: 'Bumped to version 12 [skip ci]')) }
+
+        specify "it returns false and does not create a release commit" do
+          expect(subject.create!).to be false
+
+          expect(git_wrapper).not_to have_received(:create_or_update_tag)
+          expect(git_wrapper).not_to have_received(:commit)
+        end
       end
     end
 
-    it "pushes the new version to primary branch to reduce the chance of version number collisions" do
-      expect(git_wrapper).to receive(:push).with('main', tags: true)
+    context "given EpiDeploy.create_release_commit option is configured to false" do
+      before do
+        allow(EpiDeploy).to receive(:create_release_commit?).and_return(false)
 
-      expect(subject.create!).to be true
-    end
+        allow(git_wrapper).to receive(:git_object_for).with(git_wrapper.most_recent_release_tag).and_return(instance_double(Git::Object::Commit, sha: "3acd361a8177b06645822fe6df4ab486137709a0"))
+        allow(git_wrapper).to receive(:most_recent_commit).and_return(instance_double(Git::Object::Commit, sha: "6815f6a9dfa318871fe3ab8dce53956dc59692b5"))
+      end
 
-    it 'does not create a new release if the most recent commit is a release commit' do
-      allow(git_wrapper).to receive(:most_recent_commit).and_return(double('commit', message: 'Bumped to version 12 [skip ci]'))
-      expect(git_wrapper).not_to receive(:create_or_update_tag)
+      context "if a release can be created" do
+        it "returns true" do
+          expect(subject.create!).to be true
+        end
 
-      expect(subject.create!).to be false
+        it "performs a git pull to ensure code is the latest" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:pull)
+        end
+
+        it "does not create a new commit" do
+          subject.create!
+
+          expect(git_wrapper).not_to have_received(:commit)
+        end
+
+        it "creates a tag in the format YYYYmonDD-HHMM-CommitRef-version on the current commit" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:create_or_update_tag).with expected_release_tag
+        end
+
+        it "sets #tag to the newly-created tag" do
+          subject.create!
+
+          expect(subject.tag).to eq expected_release_tag
+        end
+      end
+
+      context "if the primary branch is not checked out" do
+        before { allow(git_wrapper).to receive(:on_primary_branch?).and_return(false) }
+
+        specify "it aborts with an error message" do
+          expect { subject.create! }.to raise_error abort_exception
+          expect(Kernel).to have_received(:abort).with including "You can only create a release on the main or master branch - please switch to main or master."
+        end
+      end
+
+      context "if there are pending changes" do
+        before { allow(git_wrapper).to receive(:pending_changes?).and_return(true) }
+
+        specify "it aborts with an error message" do
+          expect { subject.create! }.to raise_error abort_exception
+          expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
+        end
+
+        specify "it creates a release if allow_dirty is truthy" do
+          expect(subject.create! allow_dirty: true).to be true
+        end
+      end
+
+      context "if the most recent release tag is on the most recent commit" do
+        let(:latest_commit) { instance_double(Git::Object::Commit, sha: "e0b8e2a14ae2374c5a208ce238226c7dfb17040b") }
+
+        before do
+          allow(git_wrapper).to receive(:git_object_for).with(git_wrapper.most_recent_release_tag).and_return(latest_commit)
+          allow(git_wrapper).to receive(:most_recent_commit).and_return(latest_commit)
+        end
+
+        specify "it returns false" do
+          expect(subject.create!).to be false
+        end
+
+        specify "it does not create a new tag" do
+          subject.create!
+
+          expect(git_wrapper).not_to have_received(:create_or_update_tag)
+        end
+      end
+
+      context "if there are no release tags" do
+        let(:version) { 0 }
+
+        before do
+          allow(git_wrapper).to receive_messages(most_recent_release_tag: nil, release_tag_list: [])
+        end
+
+        specify "creates a new release tag with version 1" do
+          subject.create!
+
+          expect(git_wrapper).to have_received(:create_or_update_tag).with expected_release_tag
+        end
+      end
+
+      context "when config/initializers/version.rb exists" do
+        let(:app_version) { instance_double EpiDeploy::AppVersion, version_file_exists?: true }
+
+        before do
+          allow(app_version).to receive(:version=)
+        end
+
+        specify "it prints a message to prompt the file to be deleted" do
+          subject.create!
+
+          expect(Kernel).to have_received(:warn).with including "The file config/initializers/version.rb should be deleted as it is no longer needed by epi_deploy"
+        end
+      end
     end
   end
 end
