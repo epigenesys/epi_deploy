@@ -1,4 +1,4 @@
-Copyright (c) 2014 Epi Genesys Ltd
+Copyright (c) 2026 Epi Genesys Ltd
 
 MIT License
 

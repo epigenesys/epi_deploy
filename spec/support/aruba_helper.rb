@@ -1,34 +1,35 @@
 require 'git'
-require 'aruba/api'
-
-RSpec.configure do |config|
-  config.include Aruba::Api
-end
-
-def local_repo
-  File.expand_path("../../../#{Aruba.config.working_directory}", __FILE__)
-end
+require 'aruba/rspec'
 
 def setup_aruba_and_git
-  @dirs = [local_repo]
-
-  setup_aruba
-  `rm -rf #{local_repo}`
-  `mkdir -p #{local_repo}`
-  `cp #{File.expand_path('../../../Gemfile*', __FILE__)} #{local_repo}`
-
-  `mkdir -p #{local_repo}/config/initializers`
-  `mkdir -p #{local_repo}/config/deploy`
-
-  `echo > #{local_repo}/config/initializers/.gitkeep`
-  `cp -r #{File.expand_path('../../../config/deploy/*.rb', __FILE__)} #{local_repo}/config/deploy/`
+  local_repo = Aruba.config.home_directory
+  copy "%/test_app/config", "%/test_app/Gemfile", "%/test_app/Capfile", "."
 
   g = Git.init(local_repo)
+  g.config("push.autoSetupRemote", "true")
+  g.config("user.name", "epiDeploy Test Account")
+  g.config("user.email", "epi_deploy@example.test")
   g.add
   g.commit('initial commit')
 
   # Set the remote repo to the local, works the same as an actual remote
   g.add_remote('origin', local_repo)
+  g.push("origin", "HEAD")
+end
 
-  `cd #{local_repo} && git push --quiet -u origin $(git symbolic-ref --short HEAD) &> /dev/null`
+def run_ed(commands)
+  run_command_and_stop "bundle exec epi_deploy #{commands}", fail_on_error: false
+end
+
+RSpec.configure do |config|
+  config.include Aruba::Api
+
+  config.around(type: :aruba) do |example|
+    setup_aruba_and_git
+    if example.metadata[:bundle]
+      run_command_and_stop 'bundle install --quiet'
+    end
+
+    example.run
+  end
 end

@@ -1,13 +1,7 @@
 require 'spec_helper'
 require 'support/aruba_helper'
 
-describe "Deploy", type: :aruba do
-
-  before do
-    setup_aruba_and_git
-    run_command_and_stop 'bundle install --quiet'
-  end
-
+describe "Deploy", :bundle, type: :aruba do
   it "errors if environment doesn't exist" do
     run_ed 'deploy invalidenvironment'
 
@@ -31,5 +25,4 @@ describe "Deploy", type: :aruba do
     expect(all_output).to include('Deploying to production...')
     expect(last_command_started).to have_exit_status(0)
   end
-
 end

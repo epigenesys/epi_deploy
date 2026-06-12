@@ -1,9 +1,10 @@
 module EpiDeploy
   class AppVersion
+
     attr_accessor :version_file_path, :version, :latest_release_tag
-    
+
     def initialize(current_dir = Dir.pwd)
-      self.version_file_path = File.join(current_dir, 'config/initializers/version.rb')
+      self.version_file_path = File.join(current_dir, "config/initializers/version.rb")
     end
 
     def load
@@ -15,12 +16,12 @@ module EpiDeploy
         end
       else
         self.version = 0
-        self.latest_release_tag = ''
+        self.latest_release_tag = ""
       end
     end
 
     def save!
-      File.open version_file_path, 'w' do |f|
+      File.open version_file_path, "w" do |f|
         f.write "APP_VERSION = '#{version}'\n"
         f.write "LATEST_RELEASE_TAG = '#{latest_release_tag}'\n"
       end
@@ -37,21 +38,22 @@ module EpiDeploy
     end
 
     private
-      def version_file_exists?
-        File.exist? version_file_path
-      end
-      
-      def extract_version_number(contents)
-        contents.match(/APP_VERSION\s*=\s*'(?<version>\d+).*'/)[:version].to_i
-      end
 
-      def extract_latest_release_tag(contents)
-        if (match = contents.match(/LATEST_RELEASE_TAG\s*=\s*'(?<tag>[A-Za-z0-9_-]+)'/))
-          match[:tag]
-        else
-          ''
-        end
+    def version_file_exists?
+      File.exist? version_file_path
+    end
+
+    def extract_version_number(contents)
+      contents.match(/APP_VERSION\s*=\s*'(?<version>\d+).*'/)[:version].to_i
+    end
+
+    def extract_latest_release_tag(contents)
+      if (match = contents.match(/LATEST_RELEASE_TAG\s*=\s*'(?<tag>[A-Za-z0-9_-]+)'/))
+        match[:tag]
+      else
+        ""
       end
-    
+    end
+
   end
 end

@@ -1,11 +1,12 @@
-require 'git'
-require_relative './helpers'
+require "git"
+require_relative "./helpers"
 
 module EpiDeploy
   class GitWrapper
+
     include EpiDeploy::Helpers
     def on_primary_branch?
-      ["main", "master"].include? current_branch 
+      ["main", "master"].include? current_branch
     end
 
     def pending_changes?
@@ -16,7 +17,7 @@ module EpiDeploy
     end
 
     def pull
-      git.pull('origin', current_branch)
+      git.pull("origin", current_branch)
     end
 
     def commit(message)
@@ -25,7 +26,7 @@ module EpiDeploy
 
     def push(branch, **options)
       options = { force: false, tags: true }.merge(options)
-      git.push 'origin', branch, **options
+      git.push "origin", branch, **options
     end
 
     def add(files = nil)
@@ -38,13 +39,13 @@ module EpiDeploy
 
     def create_or_update_tag(name, commit = nil, push: true)
       if push
-        git.push('origin', "refs/tags/#{name}", delete: true)
+        git.push("origin", "refs/tags/#{name}", delete: true)
       end
 
       git.add_tag(name, commit, annotate: true, f: true, message: name)
 
       if push
-        git.push('origin', "refs/tags/#{name}")
+        git.push("origin", "refs/tags/#{name}")
       end
     end
 
@@ -60,7 +61,7 @@ module EpiDeploy
     end
 
     def tag_list
-      @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.gsub("'", '').split.reverse
+      @tag_list ||= `git for-each-ref --sort=taggerdate --format '%(tag)' refs/tags`.gsub("'", "").split.reverse
     end
 
     def current_branch
@@ -99,5 +100,6 @@ module EpiDeploy
     def commit_hash_for(ref)
       `git rev-list -n1 #{ref}`.strip
     end
+
   end
 end

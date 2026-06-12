@@ -5,11 +5,11 @@ require 'spec_helper'
 require 'epi_deploy/app_version'
 
 RSpec.describe EpiDeploy::AppVersion do
+  subject { described_class.new(current_dir) }
+
   let(:current_dir) { File.expand_path(File.join('../../../../tmp/test_directory'), __FILE__) }
   let(:initializers_dir) { File.join(current_dir, 'config/initializers') }
   let(:version_file_path) { File.join(initializers_dir, 'version.rb') }
-
-  subject { described_class.new(current_dir) }
 
   before do
     FileUtils.mkdir_p(initializers_dir)
