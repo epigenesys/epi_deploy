@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.homepage = "https://github.com/epigenesys/epi_deploy"
   gem.license = "MIT"
 
-  gem.files = Dir["bin/*", "lib/**", "LICENSE.txt", "README.md"]
+  gem.files = Dir["bin/*", "lib/**/*", "LICENSE.txt", "README.md"]
   gem.executables   = Dir["bin/*"].map { |f| File.basename(f) }
 
   gem.required_ruby_version = ">= 3.1"
