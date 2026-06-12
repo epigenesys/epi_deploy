@@ -25,7 +25,10 @@ describe EpiDeploy::Release do
   let(:abort_exception) { RuntimeError.new "abort" }
   let(:expected_release_tag) { "#{Time.now.strftime("%Y%b%d-%H%M")}-#{git_wrapper.short_commit_hash}-v#{version + 1}".downcase }
 
-  before { allow(Kernel).to receive(:abort).and_raise(abort_exception) }
+  before do
+    allow(Kernel).to receive(:abort).and_raise(abort_exception)
+    allow($stdout).to receive(:puts)
+  end
 
   describe "#create!" do
     context "given EpiDeploy.create_release_commit option is configured to true" do
@@ -116,7 +119,7 @@ describe EpiDeploy::Release do
           expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
         end
 
-        specify "it creates a release if allow_empty is truthy" do
+        specify "it creates a release if allow_dirty is truthy" do
           expect(subject.create! allow_dirty: true).to be true
         end
       end
@@ -188,7 +191,7 @@ describe EpiDeploy::Release do
           expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
         end
 
-        specify "it creates a release if allow_empty is truthy" do
+        specify "it creates a release if allow_dirty is truthy" do
           expect(subject.create! allow_dirty: true).to be true
         end
       end
@@ -206,11 +209,13 @@ describe EpiDeploy::Release do
         end
 
         specify "it does not create a new tag" do
+          subject.create!
+
           expect(git_wrapper).not_to have_received(:create_or_update_tag)
         end
       end
 
-      context "if there are not any release tags" do
+      context "if there are no release tags" do
         let(:version) { 0 }
 
         before do
@@ -236,7 +241,7 @@ describe EpiDeploy::Release do
 
           subject.create!
 
-          expect($stdout).to have_received(:puts).with including "The file config/initializers/version.rb can be deleted as it is no longer needed"
+          expect($stdout).to have_received(:puts).with including "The file config/initializers/version.rb should be deleted as it is no longer needed by epi_deploy"
         end
       end
     end

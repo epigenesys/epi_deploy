@@ -89,4 +89,10 @@ RSpec.describe EpiDeploy::ReleaseTag do
       expect(subject.to_s).to eq "#{timestamp}-#{commit}-v#{version}"
     end
   end
+
+  describe "#name" do
+    it "returns a representation of the tag for use with Git" do
+      expect(subject.name).to eq "#{timestamp}-#{commit}-v#{version}"
+    end
+  end
 end

@@ -11,8 +11,6 @@ module EpiDeploy
 
     include EpiDeploy::Helpers
 
-    MONTHS = %w[jan feb mar apr may jun jul aug sep oct nov dec]
-
     attr_accessor :reference
     attr_accessor :tag
     attr_accessor :commit
@@ -33,7 +31,10 @@ module EpiDeploy
       if EpiDeploy.create_release_commit?
         create_with_commit!
       else
-        print_warning "The file config/initializers/version.rb can be deleted as it is no longer needed" if app_version.version_file_exists?
+        print_warning <<~EOF.chomp if app_version.version_file_exists?
+          The file config/initializers/version.rb should be deleted as it is no longer needed by epi_deploy
+          Run 'git rm config/initializers/version.rb' to remove and stage the removal.
+        EOF
         create_without_commit!
       end
     end
@@ -62,13 +63,13 @@ module EpiDeploy
     private
 
     def create_with_commit!
-      common_steps
+      prerelease_steps
 
       if git_wrapper.most_recent_commit.message.start_with? "Bumped to version"
         false
       else
         new_version = app_version.bump
-        self.tag = ReleaseTag.new(commit: git_wrapper.short_commit_hash, version: new_version).to_s
+        self.tag = ReleaseTag.new(commit: git_wrapper.short_commit_hash, version: new_version).name
         app_version.latest_release_tag = self.tag
         app_version.save!
         git_wrapper.reset
@@ -85,7 +86,7 @@ module EpiDeploy
     end
 
     def create_without_commit!
-      common_steps
+      prerelease_steps
 
       result = false
       release_tag = nil
@@ -99,7 +100,7 @@ module EpiDeploy
       end
 
       unless release_tag.nil?
-        self.tag = "#{release_tag}"
+        self.tag = release_tag.name
         git_wrapper.create_or_update_tag(self.tag)
         self.app_version.version = release_tag.version
 
@@ -111,7 +112,7 @@ module EpiDeploy
       print_failure_and_abort "A git error occurred: #{e.message}"
     end
 
-    def common_steps
+    def prerelease_steps
       prerelease_checks
       git_wrapper.pull
     end

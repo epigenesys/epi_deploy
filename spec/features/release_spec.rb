@@ -29,7 +29,7 @@ describe "Release", :bundle, type: :aruba do
     end
   end
 
-  shared_context "release with pending changes" do
+  shared_examples "release with pending changes" do
     context "if the working tree is dirty" do
       before do
         write_file "Gemfile", "test contents"
@@ -110,7 +110,7 @@ describe "Release", :bundle, type: :aruba do
       specify "it prints a message prompting me to delete the file" do
         run_ed "release"
 
-        expect(all_output).to include "The file config/initializers/version.rb can be deleted as it is no longer needed"
+        expect(all_output).to include "The file config/initializers/version.rb should be deleted as it is no longer needed by epi_deploy"
       end
     end
 
