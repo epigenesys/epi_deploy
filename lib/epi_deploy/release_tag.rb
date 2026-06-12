@@ -36,8 +36,12 @@ module EpiDeploy
       self.class.new timestamp:, commit:, version: version + 1
     end
 
-    def to_s
+    def name
       "#{dump_timestamp(timestamp)}-#{commit}-v#{version}"
+    end
+
+    def to_s
+      name
     end
 
     private

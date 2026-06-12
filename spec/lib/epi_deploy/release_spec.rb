@@ -119,7 +119,7 @@ describe EpiDeploy::Release do
           expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
         end
 
-        specify "it creates a release if allow_empty is truthy" do
+        specify "it creates a release if allow_dirty is truthy" do
           expect(subject.create! allow_dirty: true).to be true
         end
       end
@@ -191,7 +191,7 @@ describe EpiDeploy::Release do
           expect(Kernel).to have_received(:abort).with including "You have pending changes - please commit or stash them, or pass the --allow-dirty flag."
         end
 
-        specify "it creates a release if allow_empty is truthy" do
+        specify "it creates a release if allow_dirty is truthy" do
           expect(subject.create! allow_dirty: true).to be true
         end
       end
@@ -209,11 +209,13 @@ describe EpiDeploy::Release do
         end
 
         specify "it does not create a new tag" do
+          subject.create!
+
           expect(git_wrapper).not_to have_received(:create_or_update_tag)
         end
       end
 
-      context "if there are not any release tags" do
+      context "if there are no release tags" do
         let(:version) { 0 }
 
         before do
@@ -239,7 +241,7 @@ describe EpiDeploy::Release do
 
           subject.create!
 
-          expect(Kernel).to have_received(:warn).with including "The file config/initializers/version.rb can be deleted as it is no longer needed"
+          expect(Kernel).to have_received(:warn).with including "The file config/initializers/version.rb should be deleted as it is no longer needed by epi_deploy"
         end
       end
     end

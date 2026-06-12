@@ -77,9 +77,10 @@ The simplest way to deploy is at the same time as creating a commit, by passing 
 ed release --deploy demo:production
 ```
 
-Alternatively, you can deploy separately to creating a release using the `deploy` command. This deploys the latest release to the given environment(s) by default. Separate each environment with a space.
+Alternatively, you can release and deploy separately, by using the `deploy` command to deploy. This deploys the latest release to the given environment(s) by default. Separate each environment with a space.
 
 ```sh
+ed release
 ed deploy demo production
 ```
 
