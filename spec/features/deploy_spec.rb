@@ -62,7 +62,7 @@ describe "Deploy", :bundle, type: :aruba do
     specify "it exits with an error" do
       run_ed "deploy production"
 
-      expect(all_output).to include "The use_tags_for_deploy option is now obsolete. Remove this from your configuration to continue."
+      expect(all_output).to include "The use_tags_for_deploy option is now obsolete. It has been superseded by use_timestamped_deploy_tags."
     end
   end
 end
