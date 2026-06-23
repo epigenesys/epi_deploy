@@ -45,7 +45,7 @@ Releasing creates a Git tag in the format `YYYYmonDD-HHMM-<short_commit_hash>-v<
 ed release
 ```
 
-You can revert back to creating commitful releaess, by setting `EpiDeploy.create_release_commit` to `true` in your `config/epi_deploy.rb`. This raises a deprecation warning each time a release is made.
+You can revert back to creating commitful releases, by setting `EpiDeploy.create_release_commit` to `true` in your `config/epi_deploy.rb`. This raises a deprecation warning each time a release is made.
 
 ```rb
 # config/epi_deploy.rb
