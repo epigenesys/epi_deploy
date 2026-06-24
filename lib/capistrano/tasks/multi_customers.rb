@@ -4,7 +4,7 @@ namespace :epi_deploy do
       customer_settings_file = "config/customers/customer_settings/#{fetch(:current_customer)}.yml"
       customer_settings_path = release_path.join(customer_settings_file)
       if test("[ -f '#{customer_settings_path}' ]")
-        execute :ln, '-s', customer_settings_path, release_path.join("config/customer_settings.yml")
+        execute :ln, "-s", customer_settings_path, release_path.join("config/customer_settings.yml")
       else
         warn "Not symlinking customer configuration as #{customer_settings_file} not found"
       end
@@ -42,7 +42,7 @@ end
 def iterate_over_customers
   Dir.glob("config/deploy/#{fetch(:stage)}.*.rb").sort.each_with_index do |file, index|
     # Extract the variables required
-    stage_and_customer = File.basename file, '.rb'
+    stage_and_customer = File.basename file, ".rb"
     customer = stage_and_customer[/\.(.+)$/, 1]
 
     # Insert a blank line between each run
@@ -53,5 +53,5 @@ def iterate_over_customers
   end
 end
 
-task deploy_all: 'deploy_all:deploy'
-after 'deploy:updating', 'epi_deploy:symlink_customer_configs'
+task deploy_all: "deploy_all:deploy"
+after "deploy:updating", "epi_deploy:symlink_customer_configs"
