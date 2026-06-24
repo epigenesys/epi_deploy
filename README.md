@@ -37,7 +37,7 @@ No initial setup is required as prerequisites are checked automatically before e
 
 ### Creating a release
 
-**Creating commitless releases is now the default behaviour, and in a future version will be the only way to make releases. It is recommended that you migrate your workflow as soon as possible to commitless releases.**
+**Creating commitless releases is now the default behaviour, and in a future version this will be the only way to make releases. It is recommended that you migrate your workflow as soon as possible to commitless releases.**
 
 Releasing creates a Git tag in the format `YYYYmonDD-HHMM-<short_commit_hash>-v<version>`, where `<short_commit_hash>` is the first seven characters of the hash of the latest commit on the main branch, and `<version>` is one more than the `<version>` in the previous release tag. The tag is pushed to the remote repository. Releasing can only be done on the `main` or `master` branch.
 
@@ -67,7 +67,7 @@ By default, creating a release is prevented if your working tree or index is dir
 ed release --allow-dirty
 ```
 
-When creating commitful releases, then this will call `git reset` to unstage any staged changes before to ensure that only the change to the `version.rb` is committed.
+When using commitful releases and passing `--allow-dirty` epi_deploy will first call `git reset` to unstage any staged changes before to ensure that only the change to the `version.rb` is committed.
 
 ### Deploying a release
 
