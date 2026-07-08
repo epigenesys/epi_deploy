@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'support/aruba_helper'
 
 describe "Deploy", :bundle, type: :aruba do
+  let(:git) { Git.open(aruba.config.home_directory) }
+
   it "errors if environment doesn't exist" do
     run_ed 'deploy invalidenvironment'
 
@@ -17,8 +19,8 @@ describe "Deploy", :bundle, type: :aruba do
   end
 
   it "deploys latest release" do
-    run_command_and_stop 'git tag -a 2026jun09-1610-c17fe6f-v1 -m "For testing"'  # Create a pretend release
-    run_command_and_stop 'git push'
+    git.add_tag "2026jun09-1610-c17fe6f-v1", nil, annotate: true, f: true, message: "For testing"
+    git.push
 
     run_ed 'deploy production'
 
@@ -27,12 +29,48 @@ describe "Deploy", :bundle, type: :aruba do
   end
 
   it "deploys the reference specified" do
-    run_command_and_stop 'git tag -a feature-tag -m "For testing"'
-    run_command_and_stop "git push"
+    git.add_tag "feature-tag", nil, annotate: true, f: true, message: "For testing"
+    git.push
 
     run_ed "deploy production -r feature-tag"
     expect(all_output).to include('Deploying to production...')
     expect(last_command_started).to have_exit_status(0)
+  end
+
+  context "given that EpiDeploy.use_timestamped_deploy_tags is configured to true" do
+    before do
+      write_file "config/epi_deploy.rb", <<~RUBY
+        EpiDeploy.use_timestamped_deploy_tags = true
+      RUBY
+    end
+
+    specify "it adds a tag to the latest release if no reference is specified" do
+      git.add_tag "2026jun09-1610-c17fe6f-v1", nil, annotate: true, f: true, message: "For testing"
+      git.push
+      git.commit("test message", allow_empty: true)
+
+      run_ed 'deploy production'
+
+      deploy_tag = git.object "#{git.tags.filter { |tag| tag.name.start_with? "deploy-production" }.first.name}^{}"
+      release_tag = git.object "2026jun09-1610-c17fe6f-v1^{}"
+
+      expect(deploy_tag.sha).to eq release_tag.sha
+    end
+
+    specify "it adds a tag to the specified reference if is specified" do
+      git.add_tag "2026jun09-1610-c17fe6f-v1", nil, annotate: true, f: true, message: "For testing"
+      git.push
+      git.branch("test-branch").checkout
+      git.commit("test message", allow_empty: true)
+      git.branch("master").checkout
+
+      run_ed "deploy production -r test-branch"
+
+      deploy_tag = git.object "#{git.tags.filter { |tag| tag.name.start_with? "deploy-production" }.first.name}^{}"
+      branch = git.object "test-branch"
+
+      expect(deploy_tag.sha).to eq branch.sha
+    end
   end
 
   context "given that EpiDeploy.use_timestamped_deploy_tags is configured to false" do
@@ -43,8 +81,8 @@ describe "Deploy", :bundle, type: :aruba do
     end
 
     specify "it prints a deprecation warning that prompts me to switch to using tags" do
-      run_command_and_stop 'git tag -a 2026jun09-1610-c17fe6f-v1 -m "For testing"'  # Create a pretend release
-      run_command_and_stop 'git push'
+      git.add_tag "2026jun09-1610-c17fe6f-v1", nil, annotate: true, f: true, message: "For testing"
+      git.push
 
       run_ed "deploy production"
 
@@ -63,6 +101,7 @@ describe "Deploy", :bundle, type: :aruba do
       run_ed "deploy production"
 
       expect(all_output).to include "The use_tags_for_deploy option is now obsolete. It has been superseded by use_timestamped_deploy_tags."
+      expect(last_command_started).not_to have_exit_status(0)
     end
   end
 end
