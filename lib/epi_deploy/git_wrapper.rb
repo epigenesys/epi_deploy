@@ -59,7 +59,13 @@ module EpiDeploy
         git.push("origin", "refs/tags/#{name}", delete: true)
       end
 
-      git.add_tag(name, commit, annotate: true, f: true, message: name)
+      target = if commit.respond_to? :sha
+        commit.sha
+      else
+        commit
+      end
+
+      git.add_tag(name, target, annotate: true, f: true, message: name)
 
       if push
         git.push("origin", "refs/tags/#{name}")

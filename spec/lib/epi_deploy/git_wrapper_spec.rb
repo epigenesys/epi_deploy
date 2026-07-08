@@ -10,12 +10,26 @@ describe EpiDeploy::GitWrapper do
   let(:current_branch) { 'main' }
 
   describe '#create_or_update_tag' do
-    it 'adds a new tag for the stage to the commit' do
-      subject.create_or_update_tag 'production', commit
+    context "if the commit object is a String" do
+      it 'adds a new tag at the commit' do
+        subject.create_or_update_tag 'production', commit
 
-      expect(git).to have_received(:push).with('origin', 'refs/tags/production', delete: true)
-      expect(git).to have_received(:add_tag).with('production', commit, any_args)
-      expect(git).to have_received(:push).with('origin', 'refs/tags/production')
+        expect(git).to have_received(:push).with('origin', 'refs/tags/production', delete: true)
+        expect(git).to have_received(:add_tag).with('production', commit, any_args)
+        expect(git).to have_received(:push).with('origin', 'refs/tags/production')
+      end
+    end
+
+    context "if the commit object responds to #sha" do
+      let(:commit) { instance_double Git::Object::AbstractObject, sha: "caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b" }
+
+      it "adds a new tag of the commit returned by #sha" do
+        subject.create_or_update_tag 'production', commit
+
+        expect(git).to have_received(:push).with('origin', 'refs/tags/production', delete: true)
+        expect(git).to have_received(:add_tag).with('production', commit.sha, any_args)
+        expect(git).to have_received(:push).with('origin', 'refs/tags/production')
+      end
     end
   end
 
