@@ -1,5 +1,5 @@
-require 'spec_helper'
-require 'support/aruba_helper'
+require "spec_helper"
+require "support/aruba_helper"
 
 require "git"
 
@@ -11,21 +11,21 @@ describe "Release", :bundle, type: :aruba do
 
   shared_examples "deployed release" do
     it "deploys the release if the flag is supplied" do
-      run_ed 'release --deploy production'
+      run_ed "release --deploy production"
 
       expect(last_command_started).to have_exit_status(0)
-      expect(all_output).to include('Deploying to production...')
-      expect(all_output).to include 'Capistrano deploying to production'
+      expect(all_output).to include("Deploying to production...")
+      expect(all_output).to include "Capistrano deploying to production"
     end
 
-    it 'does not deploy a second environment if the first environment deployment fails' do
-      run_ed 'release --deploy demo:production'
+    it "does not deploy a second environment if the first environment deployment fails" do
+      run_ed "release --deploy demo:production"
 
       expect(last_command_started).to have_exit_status(1)
-      expect(all_output).to include('Deploying to demo...')
-      expect(all_output).to include('Deployment failed - please review output before deploying again')
-      expect(all_output).not_to include('Deploying to production...')
-      expect(all_output).not_to include 'Capistrano deploying to production'
+      expect(all_output).to include("Deploying to demo...")
+      expect(all_output).to include("Deployment failed - please review output before deploying again")
+      expect(all_output).not_to include("Deploying to production...")
+      expect(all_output).not_to include "Capistrano deploying to production"
     end
   end
 
@@ -83,7 +83,7 @@ describe "Release", :bundle, type: :aruba do
 
         expect(last_command_started).to have_exit_status(0)
         expect(all_output).to include("Release #{expected_version} created with tag #{expected_release_tag}")
-        expect(all_output).not_to include 'Capistrano deploying'
+        expect(all_output).not_to include "Capistrano deploying"
       end
     end
 
@@ -142,7 +142,7 @@ describe "Release", :bundle, type: :aruba do
         expect(last_command_started).to have_exit_status(0)
         expect(all_output).to include("Release #{expected_version} created with tag #{expected_release_tag}")
         expect(read "config/initializers/version.rb").to include "APP_VERSION = '1'"
-        expect(all_output).not_to include 'Capistrano deploying to production'
+        expect(all_output).not_to include "Capistrano deploying to production"
       end
     end
 
@@ -161,7 +161,7 @@ describe "Release", :bundle, type: :aruba do
         expect(last_command_started).to have_exit_status(0)
         expect(all_output).to include("Release #{expected_version} created with tag #{expected_release_tag}")
         expect(read "config/initializers/version.rb").to include "APP_VERSION = '6'"
-        expect(all_output).not_to include 'Capistrano deploying'
+        expect(all_output).not_to include "Capistrano deploying"
       end
     end
 

@@ -1,22 +1,22 @@
-require 'spec_helper'
-require 'epi_deploy/config'
-require 'epi_deploy/git_wrapper'
+require "spec_helper"
+require "epi_deploy/config"
+require "epi_deploy/git_wrapper"
 
 describe EpiDeploy::GitWrapper do
   subject { described_class.new git: }
 
   let(:git) { instance_spy Git::Base, current_branch:, add_tag: true, push: true }
-  let(:commit) { 'caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b' }
-  let(:current_branch) { 'main' }
+  let(:commit) { "caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b" }
+  let(:current_branch) { "main" }
 
-  describe '#create_or_update_tag' do
+  describe "#create_or_update_tag" do
     context "if the commit object is a String" do
-      it 'adds a new tag at the commit' do
-        subject.create_or_update_tag 'production', commit
+      it "adds a new tag at the commit" do
+        subject.create_or_update_tag "production", commit
 
-        expect(git).to have_received(:push).with('origin', 'refs/tags/production', delete: true)
-        expect(git).to have_received(:add_tag).with('production', commit, any_args)
-        expect(git).to have_received(:push).with('origin', 'refs/tags/production')
+        expect(git).to have_received(:push).with("origin", "refs/tags/production", delete: true)
+        expect(git).to have_received(:add_tag).with("production", commit, any_args)
+        expect(git).to have_received(:push).with("origin", "refs/tags/production")
       end
     end
 
@@ -24,58 +24,58 @@ describe EpiDeploy::GitWrapper do
       let(:commit) { instance_double Git::Object::AbstractObject, sha: "caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b" }
 
       it "adds a new tag of the commit returned by #sha" do
-        subject.create_or_update_tag 'production', commit
+        subject.create_or_update_tag "production", commit
 
-        expect(git).to have_received(:push).with('origin', 'refs/tags/production', delete: true)
-        expect(git).to have_received(:add_tag).with('production', commit.sha, any_args)
-        expect(git).to have_received(:push).with('origin', 'refs/tags/production')
+        expect(git).to have_received(:push).with("origin", "refs/tags/production", delete: true)
+        expect(git).to have_received(:add_tag).with("production", commit.sha, any_args)
+        expect(git).to have_received(:push).with("origin", "refs/tags/production")
       end
     end
   end
 
-  describe '#create_or_update_branch' do
-    it 'creates or moves the branch to the commit' do
+  describe "#create_or_update_branch" do
+    it "creates or moves the branch to the commit" do
       allow(Kernel).to receive(:system).with("git branch -f production #{commit}").and_return(true)
 
-      subject.create_or_update_branch('production', commit)
+      subject.create_or_update_branch("production", commit)
 
-      expect(git).to have_received(:push).with('origin', 'refs/heads/production', force: true, tags: false)
+      expect(git).to have_received(:push).with("origin", "refs/heads/production", force: true, tags: false)
     end
   end
 
-  describe '#on_primary_branch?' do
-    context 'When the current branch is main' do
-      let(:current_branch) { 'main' }
+  describe "#on_primary_branch?" do
+    context "When the current branch is main" do
+      let(:current_branch) { "main" }
 
-      specify 'Then it returns true' do
+      specify "Then it returns true" do
         expect(subject).to be_on_primary_branch
       end
     end
 
-    context 'When the current branch is master' do
-      let(:current_branch) { 'master' }
+    context "When the current branch is master" do
+      let(:current_branch) { "master" }
 
-      specify 'Then it returns true' do
+      specify "Then it returns true" do
         expect(subject).to be_on_primary_branch
       end
     end
 
-    context 'When the current branch is anything else' do
-      let(:current_branch) { 'feature/cool-feature-branch' }
+    context "When the current branch is anything else" do
+      let(:current_branch) { "feature/cool-feature-branch" }
 
-      specify 'Then it returns false' do
+      specify "Then it returns false" do
         expect(subject).not_to be_on_primary_branch
       end
     end
   end
 
-  describe '#current_branch' do
-    specify 'It returns the current_branch from git' do
+  describe "#current_branch" do
+    specify "It returns the current_branch from git" do
       expect(subject.current_branch).to eq git.current_branch
     end
   end
 
-  describe '#delete_branches' do
+  describe "#delete_branches" do
     let(:branches) { instance_double Git::Branches, local: local_branches, remote: remote_branches }
     let(:production_branch) { instance_spy Git::Branch, delete: true, name: "production" }
     let(:demo_branch) { instance_spy Git::Branch, delete: true, name: "demo" }

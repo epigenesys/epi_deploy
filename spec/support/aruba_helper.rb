@@ -1,5 +1,5 @@
-require 'git'
-require 'aruba/rspec'
+require "git"
+require "aruba/rspec"
 
 def setup_aruba_and_git
   local_repo = Aruba.config.home_directory
@@ -10,10 +10,10 @@ def setup_aruba_and_git
   g.config("user.name", "epiDeploy Test Account")
   g.config("user.email", "epi_deploy@example.test")
   g.add
-  g.commit('initial commit')
+  g.commit("initial commit")
 
   # Set the remote repo to the local, works the same as an actual remote
-  g.add_remote('origin', local_repo)
+  g.add_remote("origin", local_repo)
   g.push("origin", "HEAD")
 end
 
@@ -27,7 +27,7 @@ RSpec.configure do |config|
   config.around(type: :aruba) do |example|
     setup_aruba_and_git
     if example.metadata[:bundle]
-      run_command_and_stop 'bundle install --quiet'
+      run_command_and_stop "bundle install --quiet"
     end
 
     example.run

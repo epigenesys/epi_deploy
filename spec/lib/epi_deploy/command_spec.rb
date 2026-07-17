@@ -1,10 +1,10 @@
-require 'spec_helper'
-require 'support/aruba_helper'
+require "spec_helper"
+require "support/aruba_helper"
 
-require 'epi_deploy/command'
-require 'epi_deploy/deployer'
+require "epi_deploy/command"
+require "epi_deploy/deployer"
 
-require 'slop'
+require "slop"
 
 class MockOptions
 
@@ -24,7 +24,7 @@ class MockRelease
   def create!(...); true; end
   def deploy!(environments); end
   def version; 5; end
-  def tag; 'nice-taggy'; end
+  def tag; "nice-taggy"; end
   def self.find(ref); new; end
 
   def tag_list
@@ -111,7 +111,7 @@ describe "Command" do
     end
 
     describe "optional --ref flag" do
-      subject { EpiDeploy::Command.new options, ['production'], MockRelease }
+      subject { EpiDeploy::Command.new options, ["production"], MockRelease }
 
       let(:options) { double }
 
@@ -133,7 +133,7 @@ describe "Command" do
 
       it "can be supplied with a git reference" do
         allow(options).to receive(:[]).with(:ref).and_return("an_exisiting_ref")
-        expect(subject.release_class).to receive(:find).with('an_exisiting_ref').and_return(MockRelease.new)
+        expect(subject.release_class).to receive(:find).with("an_exisiting_ref").and_return(MockRelease.new)
         subject.deploy
       end
 

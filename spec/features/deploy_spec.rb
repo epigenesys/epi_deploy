@@ -1,18 +1,18 @@
-require 'spec_helper'
-require 'support/aruba_helper'
+require "spec_helper"
+require "support/aruba_helper"
 
 describe "Deploy", :bundle, type: :aruba do
   let(:git) { Git.open(aruba.config.home_directory) }
 
   it "errors if environment doesn't exist" do
-    run_ed 'deploy invalidenvironment'
+    run_ed "deploy invalidenvironment"
 
     expect(last_command_started).to have_exit_status(1)
     expect(all_output).to include("Environment 'invalidenvironment' does not exist")
   end
 
   it "errors if no latest release" do
-    run_ed 'deploy production'
+    run_ed "deploy production"
 
     expect(last_command_started).to have_exit_status(1)
     expect(all_output).to include("There is no latest release. Create one, or specify a reference with --ref")
@@ -22,9 +22,9 @@ describe "Deploy", :bundle, type: :aruba do
     git.add_tag "2026jun09-1610-c17fe6f-v1", nil, annotate: true, f: true, message: "For testing"
     git.push
 
-    run_ed 'deploy production'
+    run_ed "deploy production"
 
-    expect(all_output).to include('Deploying to production...')
+    expect(all_output).to include("Deploying to production...")
     expect(last_command_started).to have_exit_status(0)
   end
 
@@ -33,7 +33,7 @@ describe "Deploy", :bundle, type: :aruba do
     git.push
 
     run_ed "deploy production -r feature-tag"
-    expect(all_output).to include('Deploying to production...')
+    expect(all_output).to include("Deploying to production...")
     expect(last_command_started).to have_exit_status(0)
   end
 
@@ -49,7 +49,7 @@ describe "Deploy", :bundle, type: :aruba do
       git.push
       git.commit("test message", allow_empty: true)
 
-      run_ed 'deploy production'
+      run_ed "deploy production"
 
       deploy_tag = git.object "#{git.tags.filter { |tag| tag.name.start_with? "deploy-production" }.first.name}^{}"
       release_tag = git.object "2026jun09-1610-c17fe6f-v1^{}"

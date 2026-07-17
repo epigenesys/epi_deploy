@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'time'
+require "time"
 
-require 'spec_helper'
-require 'epi_deploy/stages_extractor'
-require 'epi_deploy/release'
+require "spec_helper"
+require "epi_deploy/stages_extractor"
+require "epi_deploy/release"
 
 describe EpiDeploy::Release do
   subject { described_class.new(reference: "test", git_wrapper:, commit: "caa2c06f96cb0e52cdc6059014bc69bd94573d7a592b8c380bca5348e1f6806e0e9ad9bd12d7a78b", app_version:) }
@@ -37,7 +37,7 @@ describe EpiDeploy::Release do
           EpiDeploy::AppVersion,
           version:,
           bump: version + 1,
-          version_file_path: '',
+          version_file_path: "",
           "latest_release_tag=": nil,
           save!: true
         )
@@ -45,7 +45,7 @@ describe EpiDeploy::Release do
 
       before do
         allow(EpiDeploy).to receive(:create_release_commit?).and_return(true)
-        allow(git_wrapper).to receive(:most_recent_commit).and_return(instance_double(Git::Object::Commit, message: 'Some non-release commit'))
+        allow(git_wrapper).to receive(:most_recent_commit).and_return(instance_double(Git::Object::Commit, message: "Some non-release commit"))
       end
 
       context "if a release can be created" do
@@ -74,10 +74,10 @@ describe EpiDeploy::Release do
         it "commits the new version number" do
           subject.create!
 
-          expect(git_wrapper).to have_received(:commit).with('Bumped to version 42 [skip ci]')
+          expect(git_wrapper).to have_received(:commit).with("Bumped to version 42 [skip ci]")
         end
 
-        it 'sets the latest release tag in the app version to the newly-created tag' do
+        it "sets the latest release tag in the app version to the newly-created tag" do
           subject.create!
 
           expect(app_version).to have_received(:latest_release_tag=).with expected_release_tag
@@ -125,7 +125,7 @@ describe EpiDeploy::Release do
       end
 
       context "if the most recent commit is a release commit" do
-        before { allow(git_wrapper).to receive(:most_recent_commit).and_return(instance_double(Git::Object::Commit, message: 'Bumped to version 12 [skip ci]')) }
+        before { allow(git_wrapper).to receive(:most_recent_commit).and_return(instance_double(Git::Object::Commit, message: "Bumped to version 12 [skip ci]")) }
 
         specify "it returns false and does not create a release commit" do
           expect(subject.create!).to be false
