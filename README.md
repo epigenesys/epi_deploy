@@ -33,7 +33,11 @@ bundle install
 
 ### Initial Setup
 
-No initial setup is required as prerequisites are checked automatically before each command is run.
+1. Include this line in `Capfile`:
+
+   ```rb
+   require 'capistrano/epi_deploy'
+   ```
 
 ### Creating a release
 
@@ -123,7 +127,7 @@ If you want to deploy to multiple customers, you can set it up as following:
    server fetch(:server), user: fetch(:user), roles: %w{web app db}
    ```
 
-1. Include this line in `Capfile`:
+1. Ensure this line is in the `Capfile`:
 
    ```rb
    require 'capistrano/epi_deploy'
