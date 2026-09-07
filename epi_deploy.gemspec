@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = "https://www.epigenesys.org.uk"
 
   gem.files         = Dir['README.md', 'LICENSE.txt', 'lib/**/*.rb', 'bin/*']
-  gem.executables   = gem.files.grep(/^bin/).map{ |f| File.basename(f) }
+  gem.executables   = gem.files.grep(/^bin/).map { |f| File.basename(f) }
 
   gem.required_ruby_version = ">= 3.1"
 

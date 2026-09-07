@@ -245,26 +245,26 @@ describe EpiDeploy::Release do
     end
   end
 
-  describe '#has_ancestor?' do
-    let(:reference) { 'ca831be73f04f22998f4b47cca7f7379de89c410' }
+  describe "#has_ancestor?" do
+    let(:reference) { "ca831be73f04f22998f4b47cca7f7379de89c410" }
 
-    context 'if the reference is an ancestor of the release commit' do
+    context "if the reference is an ancestor of the release commit" do
       before do
         allow(git_wrapper).to receive(:ancestor?).with(reference, of: subject.commit).and_return(true)
       end
 
-      specify 'it returns true' do
+      specify "it returns true" do
         expect(subject).to have_ancestor reference
       end
     end
 
-    context 'if the reference is not an ancestor of the release commit' do
+    context "if the reference is not an ancestor of the release commit" do
       before do
         allow(git_wrapper).to receive(:ancestor?).with(reference, of: subject.commit).and_return(false)
       end
 
-      specify 'it returns false' do
-        expect(subject).to_not have_ancestor reference
+      specify "it returns false" do
+        expect(subject).not_to have_ancestor reference
       end
     end
   end

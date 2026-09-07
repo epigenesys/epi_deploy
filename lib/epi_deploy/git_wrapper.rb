@@ -116,7 +116,7 @@ module EpiDeploy
     end
 
     def ancestor?(reference, of:)
-      system("git merge-base #{reference} #{of} --is-ancestor")
+      Kernel.system("git merge-base #{reference} #{of} --is-ancestor")
     end
 
     private

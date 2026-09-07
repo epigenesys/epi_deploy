@@ -120,7 +120,7 @@ RSpec.describe EpiDeploy::Deployer do
         expect(Kernel).to have_received(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap demo deploy")
       end
 
-      it 'runs the capistrano deploy task for each stage for multi-customer environments' do
+      it "runs the capistrano deploy task for each stage for multi-customer environments" do
         expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.epigenesys deploy").and_return(true)
         expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.genesys deploy").and_return(true)
 
