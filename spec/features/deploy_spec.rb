@@ -24,8 +24,11 @@ describe "Deploy", :bundle, type: :aruba do
 
     run_ed "deploy production"
 
-    expect(all_output).to include("Deploying to production...")
-    expect(last_command_started).to have_exit_status(0)
+    aggregate_failures do
+      expect(all_output).to include("Deploying to production.epigenesys...")
+      expect(all_output).to include("Deploying to production.genesys...")
+      expect(last_command_started).to have_exit_status(0)
+    end
   end
 
   it "deploys the reference specified" do
@@ -33,8 +36,12 @@ describe "Deploy", :bundle, type: :aruba do
     git.push
 
     run_ed "deploy production -r feature-tag"
-    expect(all_output).to include("Deploying to production...")
-    expect(last_command_started).to have_exit_status(0)
+
+    aggregate_failures do
+      expect(all_output).to include("Deploying to production.epigenesys...")
+      expect(all_output).to include("Deploying to production.genesys...")
+      expect(last_command_started).to have_exit_status(0)
+    end
   end
 
   context "given that EpiDeploy.use_timestamped_deploy_tags is configured to true" do

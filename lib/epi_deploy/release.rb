@@ -47,6 +47,10 @@ module EpiDeploy
       git_wrapper.release_tag_list
     end
 
+    def has_ancestor?(reference)
+      git_wrapper.ancestor?(reference, of: commit)
+    end
+
     def git_wrapper
       @git_wrapper ||= GitWrapper.new
     end

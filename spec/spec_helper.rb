@@ -84,3 +84,7 @@ RSpec.configure do |config|
 
   config.backtrace_exclusion_patterns << /gems/
 end
+
+RSpec.configure do |config|
+  config.example_status_persistence_file_path = "tmp/examples.txt"
+end

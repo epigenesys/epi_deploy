@@ -115,6 +115,10 @@ module EpiDeploy
       git.object(commit_hash_for(ref))
     end
 
+    def ancestor?(reference, of:)
+      Kernel.system("git merge-base #{reference} #{of} --is-ancestor")
+    end
+
     private
 
     def git

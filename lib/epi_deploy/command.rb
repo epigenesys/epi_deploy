@@ -52,24 +52,21 @@ module EpiDeploy
       print_notice "Select a recent release (or just press enter for latest):"
 
       tag_list = {}
-      GitWrapper.new.release_tag_list.each_with_index do |release, i|
+      self.release_class.new.release_tags_list.each_with_index do |release, i|
         number = i + 1
         tag_list[number.to_s] = release
         print_notice "#{number}: #{release}"
       end
 
-      selected_release = nil
-      while selected_release.nil? do
-        selected_release = STDIN.gets[/\d/] rescue nil
-        if selected_release.nil?
-          return :latest
-        else
-          unless tag_list.key?(selected_release)
-            print_failure_and_abort "Invalid selection '#{selected_release}'. Try again..."
-            selected_release = nil
-          end
+      selected_release = STDIN.gets[/\d/] rescue nil
+      if selected_release.nil?
+        return :latest
+      else
+        unless tag_list.key?(selected_release)
+          print_failure_and_abort "Invalid selection '#{selected_release}'. Try again..."
         end
       end
+
       tag_list[selected_release]
     end
 
@@ -82,6 +79,7 @@ module EpiDeploy
         :latest
       end
     end
+
     def check_environments_are_valid(environments)
       invalid_environments = environments.reject { |environment| stages_extractor.valid_stage?(environment) }
       raise Slop::InvalidArgumentError.new("Environment '#{invalid_environments.first}' does not exist") unless invalid_environments.empty?
