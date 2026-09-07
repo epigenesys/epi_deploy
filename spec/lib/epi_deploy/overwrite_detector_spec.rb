@@ -41,12 +41,12 @@ RSpec.describe EpiDeploy::OverwriteDetector do
       end
     end
 
-    context "if the REVISION file was not found" do
+    context "if the REVISION file was not fetched successfully" do
       before do
-        allow(subject).to receive(:`).with("bundle exec cap #{stage} deploy:revision").and_return <<~EOF # rubocop:disable RSpec/SubjectStub
-          00:00 deploy:revision
-                user@epigenesys.test: REVISION file not found
-        EOF
+        allow(Kernel)
+          .to receive(:system)
+          .with(hash_including("REVISION_FILE" => anything), "bundle exec cap #{stage} deploy:download_revision")
+          .and_return(false)
       end
 
       specify "it returns nil" do
@@ -54,9 +54,13 @@ RSpec.describe EpiDeploy::OverwriteDetector do
       end
     end
 
-    context "if the command did not produce any standard output" do
+    context "if the REVISION file is empty" do
       before do
-        allow(subject).to receive(:`).with("bundle exec cap #{stage} deploy:revision").and_return "" # rubocop:disable RSpec/SubjectStub
+        allow(Kernel)
+          .to receive(:system)
+          .with(hash_including("REVISION_FILE" => anything), "bundle exec cap #{stage} deploy:download_revision") do |env, _|
+            File.write(env["REVISION_FILE"], "")
+          end
       end
 
       specify "it returns nil" do
