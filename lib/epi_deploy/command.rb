@@ -92,5 +92,6 @@ module EpiDeploy
     def allow_dirty
       options[:allow_dirty]
     end
+
   end
 end

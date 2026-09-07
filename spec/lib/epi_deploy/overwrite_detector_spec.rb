@@ -1,6 +1,7 @@
 require "spec_helper"
 
 require "epi_deploy/overwrite_detector"
+require "epi_deploy/release"
 
 RSpec.describe EpiDeploy::OverwriteDetector do
   subject { described_class.new(release) }
@@ -12,10 +13,11 @@ RSpec.describe EpiDeploy::OverwriteDetector do
   describe "#release_overwrites?" do
     context "if the REVISION file was found" do
       before do
-        allow(subject).to receive(:`).with("bundle exec cap #{stage} deploy:revision").and_return <<~EOF # rubocop:disable RSpec/SubjectStub
-          00:00 deploy:revision
-                user@epigenesys.test: #{deployed_revision}
-        EOF
+        allow(Kernel)
+          .to receive(:system)
+          .with(hash_including("REVISION_FILE" => anything), "bundle exec cap #{stage} deploy:download_revision") do |env, _|
+            File.write(env["REVISION_FILE"], deployed_revision)
+          end
       end
 
       context "and the deployed revision is an ancestor of the release" do

@@ -25,13 +25,10 @@ module EpiDeploy
     #  1. the command failed to execute
     #  2. the REVISION file was not found on the remote
     def extract_revision(stage)
-      output = `bundle exec cap #{stage} deploy:revision`
-      match = output.match(/^\s*.*?@.*?: (?<hash>[A-Za-z0-9]{40})/)
-
-      if match && match[:hash]
-        match[:hash]
-      else
-        nil
+      Tempfile.create do |f|
+        return nil unless Kernel.system({ "REVISION_FILE" => f.path }, "bundle exec cap #{stage} deploy:download_revision")
+        f.rewind
+        f.read.strip
       end
     end
 

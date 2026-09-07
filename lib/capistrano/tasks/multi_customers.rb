@@ -41,6 +41,14 @@ namespace :deploy do
       end
     end
   end
+
+  task :download_revision do
+    on roles :db do
+      within current_path do
+        download! "REVISION", ENV["REVISION_FILE"] || "tmp/REVISION"
+      end
+    end
+  end
 end
 
 def iterate_over_customers
