@@ -67,9 +67,7 @@ RSpec.describe EpiDeploy::Deployer do
         expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.epigenesys deploy").and_return(true)
         expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.genesys deploy").and_return(true)
 
-        expect do
-          subject.deploy! %w[demo production]
-        end.not_to raise_error
+        expect { subject.deploy! %w[demo production] }.not_to raise_error
       end
 
       context "if deployment to all stages is successful" do
@@ -123,14 +121,10 @@ RSpec.describe EpiDeploy::Deployer do
       end
 
       it 'runs the capistrano deploy task for each stage for multi-customer environments' do
-        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.epigenesys deploy").and_return(true)
-        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} bundle exec cap production.genesys deploy").and_return(true)
-      end
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.epigenesys deploy").and_return(true)
+        expect(Kernel).to receive(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production.genesys deploy").and_return(true)
 
-      it "runs the capistrano deploy_all task for multi-customer environments" do
-        subject.deploy! %w[production]
-
-        expect(Kernel).to have_received(:system).with("BRANCH=#{release.commit} ED_REF=test bundle exec cap production deploy_all")
+        subject.deploy! ["production"]
       end
 
       it "creates a branch for each deployment environment" do

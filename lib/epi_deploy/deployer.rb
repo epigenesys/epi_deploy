@@ -117,7 +117,7 @@ module EpiDeploy
 
     def run_cap_deploy_to(stage)
       print_notice "Deploying to #{stage}... "
-      Kernel.system "BRANCH=#{@release.commit} bundle exec cap #{stage} deploy"
+      Kernel.system "BRANCH=#{@release.commit} ED_REF=#{@release.reference} bundle exec cap #{stage} deploy"
     end
 
   end
