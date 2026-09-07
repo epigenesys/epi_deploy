@@ -13,8 +13,15 @@ Gem::Specification.new do |gem|
   gem.files         = Dir['README.md', 'LICENSE.txt', 'lib/**/*.rb', 'bin/*']
   gem.executables   = gem.files.grep(/^bin/).map{ |f| File.basename(f) }
 
-  gem.required_ruby_version = '>= 2.7', '< 3.5'
+  gem.required_ruby_version = ">= 3.1"
 
-  gem.add_dependency('slop', '~> 3.6')
-  gem.add_dependency('git',  '~> 1.5')
+  gem.add_dependency "git", "~> 1.5"
+  gem.add_dependency "slop", "~> 3.6"
+  gem.add_dependency "bundler", ">= 2.5.23", "< 5"
+
+  gem.add_development_dependency "rspec", "~> 3.1"
+  gem.add_development_dependency "aruba", "~> 1.0.0"
+  gem.add_development_dependency "byebug", "~> 11.0"
+  gem.add_development_dependency "capistrano", "~> 3.6"
+  gem.add_development_dependency "irb", "~> 1.0"
 end

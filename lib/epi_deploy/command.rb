@@ -1,4 +1,8 @@
-Dir[File.join(File.dirname(__FILE__), '*.rb')].each { |f| require_relative f }
+require "slop"
+
+require_relative "release"
+require_relative "deployer"
+require_relative "stages_extractor"
 
 module EpiDeploy
   class Command
@@ -17,7 +21,7 @@ module EpiDeploy
 
     def release
       release = self.release_class.new
-      if release.create!
+      if release.create!(allow_dirty:)
         print_success "Release #{release.version} created with tag #{release.tag}"
       else
         print_notice "Release #{release.version} has already been created on the most recent commit"
@@ -44,46 +48,49 @@ module EpiDeploy
 
     private
 
-      def prompt_for_a_release
-        print_notice "Select a recent release (or just press enter for latest):"
+    def prompt_for_a_release
+      print_notice "Select a recent release (or just press enter for latest):"
 
-        tag_list = {}
-        self.release_class.new.release_tags_list.each_with_index do |release, i|
-          number = i + 1
-          tag_list[number.to_s] = release
-          print_notice "#{number}: #{release}"
-        end
-
-        selected_release = STDIN.gets[/\d/] rescue nil
-        if selected_release.nil?
-          return :latest
-        else
-          unless tag_list.key?(selected_release)
-            print_failure_and_abort "Invalid selection '#{selected_release}'. Try again..."
-          end
-        end
-
-        tag_list[selected_release]
+      tag_list = {}
+      self.release_class.new.release_tags_list.each_with_index do |release, i|
+        number = i + 1
+        tag_list[number.to_s] = release
+        print_notice "#{number}: #{release}"
       end
 
-      def determine_release_reference(options)
-        if options.ref?
-          reference = options[:ref].to_s.strip
-          reference = prompt_for_a_release if reference.empty?
-          reference
-        else
-          :latest
+      selected_release = STDIN.gets[/\d/] rescue nil
+      if selected_release.nil?
+        return :latest
+      else
+        unless tag_list.key?(selected_release)
+          print_failure_and_abort "Invalid selection '#{selected_release}'. Try again..."
         end
       end
 
-      def check_environments_are_valid(environments)
-        invalid_environments = environments.reject { |environment| stages_extractor.valid_stage?(environment) }
-        raise Slop::InvalidArgumentError.new("Environment '#{invalid_environments.first}' does not exist") unless invalid_environments.empty?
-      end
+      tag_list[selected_release]
+    end
 
-      def stages_extractor
-        @stages_extractor ||= StagesExtractor.new
+    def determine_release_reference(options)
+      if options.ref?
+        reference = options[:ref].to_s.strip
+        reference = prompt_for_a_release if reference.empty?
+        reference
+      else
+        :latest
       end
+    end
 
+    def check_environments_are_valid(environments)
+      invalid_environments = environments.reject { |environment| stages_extractor.valid_stage?(environment) }
+      raise Slop::InvalidArgumentError.new("Environment '#{invalid_environments.first}' does not exist") unless invalid_environments.empty?
+    end
+
+    def stages_extractor
+      @stages_extractor ||= StagesExtractor.new
+    end
+
+    def allow_dirty
+      options[:allow_dirty]
+    end
   end
 end
